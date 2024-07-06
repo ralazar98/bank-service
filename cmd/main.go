@@ -9,7 +9,7 @@ import (
 
 var (
 	AccountsRe          = regexp.MustCompile(`^/accounts/*$`)
-	AccountsReWithLogin = regexp.MustCompile(`^/accounts/([a-z0-9]+(?:-[a-z0-9]+)+)$`)
+	AccountsReWithLogin = regexp.MustCompile(`^/accounts/([A-Za-z0-9]+)$`)
 )
 
 func main() {
@@ -45,6 +45,7 @@ type bankStore interface {
 	Add(name string, balance float64) error
 	List() (map[string]float64, error)
 	Show(name string) (float64, error)
+	AddMoney(name string, money float64) error
 }
 
 type AccountHandler struct {
@@ -70,15 +71,8 @@ func (h *AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//Показать счет
 		h.ShowBalance(w, r)
 		return
-	case r.Method == http.MethodPut && AccountsRe.MatchString(r.URL.Path):
-
-		//Добавить деньги
-
-		return
-	case r.Method == http.MethodDelete && AccountsRe.MatchString(r.URL.Path):
-		//снять Деньги
-		return
-
+	case r.Method == http.MethodPost && AccountsReWithLogin.MatchString(r.URL.Path):
+		h.AddMoney(w, r)
 	}
 }
 
@@ -122,7 +116,6 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
-
 func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	recipesList, err := h.store.List()
 
@@ -134,4 +127,23 @@ func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
+}
+func (h *AccountHandler) AddMoney(w http.ResponseWriter, r *http.Request) {
+	matches := AccountsReWithLogin.FindStringSubmatch(r.URL.Path)
+	if len(matches) < 2 {
+		InternalServerErrorHandler(w, r)
+		return
+	}
+
+	var account accounts.Account
+
+	if err := json.NewDecoder(r.Body).Decode(&account); err != nil {
+		InternalServerErrorHandler(w, r)
+		return
+	}
+	if err := h.store.AddMoney(account.Login, account.Money); err != nil {
+		InternalServerErrorHandler(w, r)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

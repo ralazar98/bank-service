@@ -28,3 +28,8 @@ func (m MemStore) List() (map[string]float64, error) {
 func (m MemStore) Show(name string) (float64, error) {
 	return m.list[name], nil
 }
+
+func (m MemStore) AddMoney(name string, addedBalance float64) error {
+	m.list[name] += addedBalance
+	return nil
+}
