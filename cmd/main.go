@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bank-service/configs"
+	"bank-service/internal/services"
+	http2 "bank-service/pkg/presentation/http"
 	"bank-service/rkg/accounts"
 	"encoding/json"
 	"net/http"
@@ -18,11 +21,22 @@ func main() {
 
 	store := accounts.NewMemStore()
 	accountHandler := NewAccountHandler(store)
+	cfg := configs.New()
+
+	s := services.New(c)
 
 	mux := http.NewServeMux()
-	mux.Handle("/accounts/", accountHandler)
+	mux.Handle("/accounts/?id", accountHandler)
 
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(cfg.Server.Port, mux)
+
+}
+
+var errMap = map[error]int{
+
+}
+
+func ErrorHandler(w http.ResponseWriter, err error) {
 
 }
 
@@ -40,7 +54,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 type bankStore interface {
 	Add(name string, balance float64) error
 	List() (map[string]float64, error)
-	Show(name string) (float64, error)
+	Show(services.TakeBalance) (float64, error)
 	ChangeBalance(name string, operation string, changingInBalance float64) error
 }
 
@@ -85,13 +99,14 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		InternalServerErrorHandler(w, r)
 		return
 	}
-	var account accounts.Account
+	var account http2.TakeBalance
 
 	if err := json.NewDecoder(r.Body).Decode(&account); err != nil {
 		InternalServerErrorHandler(w, r)
 		return
 	}
-	if err := h.store.Add(account.ID, account.Balance); err != nil {
+	h.store.Show(*account.ToEntity())
+	if err := ; err != nil {
 		InternalServerErrorHandler(w, r)
 		return
 	}
