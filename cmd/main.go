@@ -9,7 +9,6 @@ import (
 
 // Объявление переменных
 var (
-	AccountsRe           = regexp.MustCompile(`^/accounts/*$`)
 	AccountsReWithAction = regexp.MustCompile(`^/accounts/([A-Za-z]+)$`)
 	AccountsReIdAction   = regexp.MustCompile(`^/accounts/(id[0-9]+)$`)
 	//AccountsReIdAction   = regexp.MustCompile(`^/accounts/([A-Za-z0-9]+)/([A-Za-z0-9]+)$`)
@@ -21,21 +20,13 @@ func main() {
 	accountHandler := NewAccountHandler(store)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", &homeHandler{})
 	mux.Handle("/accounts/", accountHandler)
 
 	http.ListenAndServe(":8080", mux)
 
 }
 
-// Домашняя страница
-type homeHandler struct{}
-
-func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is my home page"))
-}
-
-// Функции ошибок
+// Обработчики ошибок
 func InternalServerErrorHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("500 Internal Server Error"))
@@ -45,6 +36,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("404 Not Found"))
 }
 
+// Интерфейс хранения
 type bankStore interface {
 	Add(name string, balance float64) error
 	List() (map[string]float64, error)
@@ -81,7 +73,7 @@ func (h *AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//Функции работы с аккаунтом
+//Обработчики
 
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	matches := AccountsReWithAction.FindStringSubmatch(r.URL.Path)
