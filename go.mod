@@ -1,6 +1,6 @@
 module bank-service
 
-go 1.23rc1
+go 1.22
 
 require (
 	github.com/bytedance/sonic v1.11.9 // indirect

@@ -1,8 +1,8 @@
-package storage
+package memory_cache
 
 import "errors"
 
-type Operation string
+type operation string
 
 var (
 	NotFoundError          = errors.New("not found")
@@ -12,13 +12,14 @@ var (
 )
 
 const (
-	OperationCreate Operation = "create"
-	OperationTake   Operation = "take"
-	OperationAdd    Operation = "add"
-	OperationShow   Operation = "show"
+	OperationCreate operation = "create"
+	OperationTake   operation = "take"
+	OperationAdd    operation = "add"
+	OperationShow   operation = "show"
 )
 
 type BankStorage struct {
+	// todo: mutex
 	list map[int]float64
 }
 
@@ -42,17 +43,17 @@ func (b *BankStorage) Show(id int) (float64, error) {
 	return b.list[id], nil
 }
 
-func (b *BankStorage) UpdateBalance(id int, changingInBalance float64, operation Operation) error {
+func (b *BankStorage) UpdateBalance(id int, changingInBalance float64, operationType operation) error {
 	if _, ok := b.list[id]; !ok {
 		return WrongAccountIdError
 	}
-	if operation == OperationTake && changingInBalance > b.list[id] {
+	if operationType == OperationTake && changingInBalance > b.list[id] {
 		return NotEnoughtBalanceError
 	}
 	switch {
-	case operation == OperationTake && changingInBalance <= b.list[id]:
+	case operationType == OperationTake && changingInBalance <= b.list[id]:
 		b.list[id] = b.list[id] - changingInBalance
-	case operation == OperationAdd:
+	case operationType == OperationAdd:
 		b.list[id] = b.list[id] + changingInBalance
 	default:
 		return InvalidOperationError
