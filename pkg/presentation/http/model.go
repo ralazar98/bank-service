@@ -1,6 +1,9 @@
 package http
 
-import "bank-service/internal/services"
+import (
+	"bank-service/internal/services"
+	"bank-service/internal/storage"
+)
 
 type CreateAccount struct {
 	ID      int     `json:"id"`
@@ -8,9 +11,9 @@ type CreateAccount struct {
 }
 
 type UpdateBalance struct {
-	ID                int    `json:"id"`
-	ChangingInBalance int    `json:"changing_in_balance"`
-	Operation         string `json:"operation"`
+	ID                int               `json:"id"`
+	ChangingInBalance float64           `json:"changing_in_balance"`
+	Operation         storage.Operation `json:"operation"`
 }
 
 type ShowBalance struct {

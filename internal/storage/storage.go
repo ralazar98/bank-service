@@ -4,6 +4,13 @@ import "errors"
 
 type Operation string
 
+var (
+	NotFoundError          = errors.New("not found")
+	NotEnoughtBalanceError = errors.New("not enough balance")
+	InvalidOperationError  = errors.New("invalid operation")
+	WrongAccountIdError    = errors.New("wrong account id")
+)
+
 const (
 	OperationCreate Operation = "create"
 	OperationTake   Operation = "take"
@@ -15,9 +22,9 @@ type BankStorage struct {
 	list map[int]float64
 }
 
-func New() *BankStorage {
+func New() BankStorage {
 	list := make(map[int]float64)
-	return &BankStorage{
+	return BankStorage{
 		list,
 	}
 }
@@ -37,14 +44,18 @@ func (b *BankStorage) Show(id int) (float64, error) {
 
 func (b *BankStorage) UpdateBalance(id int, changingInBalance float64, operation Operation) error {
 	if _, ok := b.list[id]; !ok {
-		switch {
-		case operation == OperationTake && changingInBalance <= b.list[id]:
-			b.list[id] = b.list[id] - changingInBalance
-		case operation == OperationAdd:
-			b.list[id] = b.list[id] + changingInBalance
-		default:
-			return errors.New("invalid operation")
-		}
+		return WrongAccountIdError
+	}
+	if operation == OperationTake && changingInBalance > b.list[id] {
+		return NotEnoughtBalanceError
+	}
+	switch {
+	case operation == OperationTake && changingInBalance <= b.list[id]:
+		b.list[id] = b.list[id] - changingInBalance
+	case operation == OperationAdd:
+		b.list[id] = b.list[id] + changingInBalance
+	default:
+		return InvalidOperationError
 	}
 	return nil
 }
