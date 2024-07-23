@@ -4,8 +4,8 @@ import (
 	"bank-service/internal/services"
 )
 
-type CreateAccount struct {
-	ID      int     `json:"id"`
+type CreateAccountRequest struct {
+	UserID  int     `json:"userID"`
 	Balance float64 `json:"balance"`
 }
 
@@ -19,10 +19,9 @@ type ShowBalance struct {
 	ID int `json:"id"`
 }
 
-func (c *CreateAccount) ToEntity() *services.CreateAcc {
+func (c *CreateAccountRequest) ToEntity() *services.CreateAcc {
 	return &services.CreateAcc{
-		ID:      c.ID,
+		ID:      c.UserID,
 		Balance: c.Balance,
 	}
-
 }
