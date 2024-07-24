@@ -1,9 +1,5 @@
 package http
 
-import (
-	"bank-service/internal/services"
-)
-
 type CreateAccountRequest struct {
 	UserID  int     `json:"userID"`
 	Balance float64 `json:"balance"`
@@ -19,9 +15,8 @@ type ShowBalance struct {
 	ID int `json:"id"`
 }
 
-func (c *CreateAccountRequest) ToEntity() *services.CreateAcc {
-	return &services.CreateAcc{
-		ID:      c.UserID,
-		Balance: c.Balance,
-	}
+type UpdateBalanceRequest struct {
+	UserID            int     `json:"userID"`
+	Operation         string  `json:"operation"`
+	ChangingInBalance float64 `json:"changing_in_balance"`
 }
