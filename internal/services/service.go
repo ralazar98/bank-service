@@ -30,9 +30,7 @@ func NewBankService(bankRep *memory_cache.BankStorage) *BankService {
 }
 
 func (s *BankService) Create(userID int, balance float64) error {
-	if _, err := s.bankRep.Get(userID); err == nil {
-		return AccountAlreadyExistsErr
-	}
+	//todo AccountAlreadyExistsErr
 	return s.bankRep.Create(userID, balance)
 }
 func (s *BankService) Get(userID int) (float64, error) {

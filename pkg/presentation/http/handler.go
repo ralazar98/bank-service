@@ -28,8 +28,11 @@ func (a *AccountHandler) techRoute(r chi.Router) {
 	//todo: tech
 }
 
-func (a *AccountHandler) apiRoute(r chi.Router) {
-	//todo: api
+func (a *AccountHandler) ApiRoute(r chi.Router) {
+	r.Post("/create", a.CreateAccount)
+	r.Post("/get", a.ShowBalance)
+	r.Get("/list", a.List)
+	r.Post("/update", a.Update)
 }
 
 func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +53,7 @@ func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	balance, err := a.bankService.Get(req.ID)
+	balance, err := a.bankService.Get(req.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
