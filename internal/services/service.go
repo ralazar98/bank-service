@@ -13,10 +13,10 @@ var (
 )
 
 type BankServiceI interface {
-	Create(userID int, balance float64) error
-	Get(userID int) (float64, error)
-	List() (map[int]float64, error)
-	Update(userID int, changingInBalance float64) error
+	CreateAccount(user *CreateAccount) error
+	GetBalance(user *GetBalance) (float64, error)
+	ListAccounts() (map[int]float64, error)
+	UpdateBalance(user *UpdateBalance) error
 }
 
 type BankService struct {
@@ -25,36 +25,36 @@ type BankService struct {
 
 func NewBankService(bankRep *memory_cache.BankStorage) *BankService {
 	return &BankService{
-		bankRep,
+		bankRep: bankRep,
 	}
 }
 
-func (s *BankService) Create(userID int, balance float64) error {
+func (s *BankService) CreateAccount(user *CreateAccount) error {
 	//todo AccountAlreadyExistsErr
-	return s.bankRep.Create(userID, balance)
+	return s.bankRep.Create(user.UserID, user.Balance)
 }
-func (s *BankService) Get(userID int) (float64, error) {
-	if _, err := s.bankRep.Get(userID); err != nil {
+func (s *BankService) GetBalance(user *GetBalance) (GetBalance.) {
+	if _, err := s.bankRep.Get(user.UserID); err != nil {
 		return 0, ChosenAccountNotFoundErr
 	}
-	return s.bankRep.Get(userID)
+	return s.bankRep.Get(user.UserID)
 }
 
-func (s *BankService) List() (map[int]float64, error) {
+func (s *BankService) ListAccounts() (map[int]float64, error) {
 	if s.bankRep == nil {
 		return nil, AccountsNotFoundErr
 	}
 	return s.bankRep.List()
 }
 
-func (s *BankService) Update(userID int, changingInBalance float64) error {
-	if _, err := s.bankRep.Get(userID); err != nil {
+func (s *BankService) UpdateBalance(user *UpdateBalance) error {
+	if _, err := s.bankRep.Get(user.UserID); err != nil {
 		return ChosenAccountNotFoundErr
 	}
-	balance, _ := s.bankRep.Get(userID)
-	if balance+changingInBalance < 0 {
+	balance, _ := s.bankRep.Get(user.UserID)
+	if balance+user.ChangingInBalance < 0 {
 		return NotEnoughBalanceErr
 	} else {
-		return s.bankRep.Update(userID, changingInBalance)
+		return s.bankRep.Update(user.UserID, balance+user.ChangingInBalance)
 	}
 }

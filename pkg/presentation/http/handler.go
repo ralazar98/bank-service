@@ -36,11 +36,11 @@ func (a *AccountHandler) ApiRoute(r chi.Router) {
 }
 
 func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	var req *CreateAccountRequest
+	var req *services.CreateAccount
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	err := a.bankService.Create(req.UserID, req.Balance)
+	err := a.bankService.CreateAccount(req)
 	if err != nil {
 		return
 	}
@@ -49,11 +49,11 @@ func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
-	var req ShowBalance
+	var req *services.GetBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	balance, err := a.bankService.Get(req.UserID)
+	balance, err := a.bankService.GetBalance(req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -62,7 +62,7 @@ func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
-	list, err := a.bankService.List()
+	list, err := a.bankService.ListAccounts()
 	if err != nil {
 		return
 	}
@@ -71,17 +71,17 @@ func (a *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var req UpdateBalanceRequest
+	var req *services.UpdateBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	if operation(req.Operation) == TakeOperation {
-		err := a.bankService.Update(req.UserID, req.ChangingInBalance*-1)
+		err := a.bankService.UpdateBalance(req)
 		if err != nil {
 			return
 		}
 	} else if operation(req.Operation) == AddOperation {
-		err := a.bankService.Update(req.UserID, req.ChangingInBalance)
+		err := a.bankService.UpdateBalance(req)
 		if err != nil {
 			return
 		}

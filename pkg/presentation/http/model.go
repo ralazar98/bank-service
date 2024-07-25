@@ -5,13 +5,7 @@ type CreateAccountRequest struct {
 	Balance float64 `json:"balance"`
 }
 
-type UpdateBalance struct {
-	UserID            int     `json:"userID"`
-	ChangingInBalance float64 `json:"changing_in_balance"`
-	Operation         string  `json:"operation"`
-}
-
-type ShowBalance struct {
+type ShowBalanceRequest struct {
 	UserID int `json:"userID"`
 }
 
