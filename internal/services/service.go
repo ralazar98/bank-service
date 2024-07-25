@@ -29,32 +29,41 @@ func NewBankService(bankRep *memory_cache.BankStorage) *BankService {
 	}
 }
 
-func (s *BankService) CreateAccount(user *CreateAccount) error {
+func (s *BankService) CreateAccount(user *CreateAccount) *CreateAccountResponse {
 	//todo AccountAlreadyExistsErr
-	return s.bankRep.Create(user.UserID, user.Balance)
-}
-func (s *BankService) GetBalance(user *GetBalance) (GetBalance.) {
-	if _, err := s.bankRep.Get(user.UserID); err != nil {
-		return 0, ChosenAccountNotFoundErr
-	}
-	return s.bankRep.Get(user.UserID)
+	return user.toEntity(s.bankRep.Create(user.UserID, user.Balance))
 }
 
-func (s *BankService) ListAccounts() (map[int]float64, error) {
+func (s *BankService) GetBalance(user *GetBalance) *GetBalanceResponse {
+	if _, err := s.bankRep.Get(user.UserID); err != nil {
+		return user.toEntity(0, ChosenAccountNotFoundErr)
+	}
+	return user.toEntity(s.bankRep.Get(user.UserID))
+
+}
+
+func (s *BankService) ListAccounts() *ListAccountResponse {
 	if s.bankRep == nil {
-		return nil, AccountsNotFoundErr
+		return &ListAccountResponse{
+			List:  nil,
+			Error: AccountsNotFoundErr,
+		}
 	}
-	return s.bankRep.List()
+	list, err := s.bankRep.List()
+	return &ListAccountResponse{
+		List:  list,
+		Error: err,
+	}
 }
 
-func (s *BankService) UpdateBalance(user *UpdateBalance) error {
+func (s *BankService) UpdateBalance(user *UpdateBalance) *UpdateBalanceResponse {
 	if _, err := s.bankRep.Get(user.UserID); err != nil {
-		return ChosenAccountNotFoundErr
+		return user.toEntity(ChosenAccountNotFoundErr)
 	}
 	balance, _ := s.bankRep.Get(user.UserID)
 	if balance+user.ChangingInBalance < 0 {
-		return NotEnoughBalanceErr
+		return user.toEntity(NotEnoughBalanceErr)
 	} else {
-		return s.bankRep.Update(user.UserID, balance+user.ChangingInBalance)
+		return user.toEntity(s.bankRep.Update(user.UserID, user.ChangingInBalance))
 	}
 }

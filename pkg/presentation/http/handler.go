@@ -40,11 +40,7 @@ func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	err := a.bankService.CreateAccount(req)
-	if err != nil {
-		return
-	}
-	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, a.bankService.CreateAccount(req))
 
 }
 
@@ -53,20 +49,13 @@ func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	balance, err := a.bankService.GetBalance(req)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-	render.JSON(w, r, balance)
+	render.JSON(w, r, a.bankService.GetBalance(req))
 
 }
 
 func (a *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
-	list, err := a.bankService.ListAccounts()
-	if err != nil {
-		return
-	}
-	render.JSON(w, r, list)
+	res := a.bankService.ListAccounts()
+	render.JSON(w, r, res)
 	return
 }
 
@@ -76,16 +65,9 @@ func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	if operation(req.Operation) == TakeOperation {
-		err := a.bankService.UpdateBalance(req)
-		if err != nil {
-			return
-		}
-	} else if operation(req.Operation) == AddOperation {
-		err := a.bankService.UpdateBalance(req)
-		if err != nil {
-			return
-		}
-	}
-	w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, a.bankService.UpdateBalance(req))
 
+	} else if operation(req.Operation) == AddOperation {
+		render.JSON(w, r, a.bankService.UpdateBalance(req))
+	}
 }
