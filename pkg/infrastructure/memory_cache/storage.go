@@ -1,10 +1,42 @@
 package memory_cache
 
-import "sync"
+import (
+	"bank-service/internal/entity"
+	"bank-service/internal/services"
+	"sync"
+)
 
 type BankStorage struct {
-	list map[int]float64
+	list map[int]balance
 	m    sync.RWMutex
+}
+
+func (s *BankStorage) CreateAccount(user *services.CreateAccount) *entity.User {
+	userID := user.UserID
+	b := balance{
+		b: user.Balance,
+	}
+
+	s.m.Lock()
+	defer s.m.Unlock()
+
+	s.list[userID] = b
+	return b.ToEntity(userID)
+}
+
+func (s *BankStorage) GetBalance(user *services.GetBalance) *services.GetBalanceResponse {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *BankStorage) ListAccounts() *services.ListAccountResponse {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *BankStorage) UpdateBalance(user *services.UpdateBalance) *services.UpdateBalanceResponse {
+	//TODO implement me
+	panic("implement me")
 }
 
 func New() *BankStorage {

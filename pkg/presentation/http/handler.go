@@ -15,8 +15,7 @@ const (
 )
 
 type AccountHandler struct {
-	bankService  *services.BankService
-	bankServiceI *services.BankServiceI
+	bankService *services.BankService
 }
 
 func NewAccountHandler(service *services.BankService) *AccountHandler {

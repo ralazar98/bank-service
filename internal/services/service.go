@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bank-service/pkg/infrastructure/memory_cache"
 	"errors"
 )
 
@@ -12,7 +11,7 @@ var (
 	AccountAlreadyExistsErr  = errors.New("account already exists")
 )
 
-type BankServiceI interface {
+type ReposI interface {
 	CreateAccount(user *CreateAccount) *CreateAccountResponse
 	GetBalance(user *GetBalance) *GetBalanceResponse
 	ListAccounts() *ListAccountResponse
@@ -20,18 +19,19 @@ type BankServiceI interface {
 }
 
 type BankService struct {
-	bankRep *memory_cache.BankStorage
+	bankRep ReposI
 }
 
-func NewBankService(bankRep *memory_cache.BankStorage) *BankService {
+func NewBankService(bankRep ReposI) *BankService {
 	return &BankService{
 		bankRep: bankRep,
 	}
 }
 
-func (s *BankService) CreateAccount(user *CreateAccount) *CreateAccountResponse {
+func (s *BankService) CreateAccount(user *CreateAccount) (*CreateAccountResponse, error) {
 	//todo AccountAlreadyExistsErr
-	return user.toEntity(s.bankRep.Create(user.UserID, user.Balance))
+	created := s.bankRep.CreateAccount(user)
+	return created, nil
 }
 
 func (s *BankService) GetBalance(user *GetBalance) *GetBalanceResponse {
