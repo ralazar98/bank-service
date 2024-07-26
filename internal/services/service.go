@@ -13,10 +13,10 @@ var (
 )
 
 type BankServiceI interface {
-	CreateAccount(user *CreateAccount) error
-	GetBalance(user *GetBalance) (float64, error)
-	ListAccounts() (map[int]float64, error)
-	UpdateBalance(user *UpdateBalance) error
+	CreateAccount(user *CreateAccount) *CreateAccountResponse
+	GetBalance(user *GetBalance) *GetBalanceResponse
+	ListAccounts() *ListAccountResponse
+	UpdateBalance(user *UpdateBalance) *UpdateBalanceResponse
 }
 
 type BankService struct {

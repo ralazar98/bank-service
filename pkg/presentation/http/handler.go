@@ -15,7 +15,8 @@ const (
 )
 
 type AccountHandler struct {
-	bankService *services.BankService
+	bankService  *services.BankService
+	bankServiceI *services.BankServiceI
 }
 
 func NewAccountHandler(service *services.BankService) *AccountHandler {
@@ -41,7 +42,6 @@ func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	render.JSON(w, r, a.bankService.CreateAccount(req))
-
 }
 
 func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
