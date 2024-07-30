@@ -1,21 +1,20 @@
 package services
 
 import (
+	"bank-service/internal/entity"
 	"errors"
 )
 
 var (
 	NotEnoughBalanceErr      = errors.New("not enough balance")
-	AccountsNotFoundErr      = errors.New("accounts not found")
 	ChosenAccountNotFoundErr = errors.New("chosen account not found")
 	AccountAlreadyExistsErr  = errors.New("account already exists")
 )
 
 type ReposI interface {
-	CreateAccount(user *CreateAccount) *CreateAccountResponse
-	GetBalance(user *GetBalance) *GetBalanceResponse
-	ListAccounts() *ListAccountResponse
-	UpdateBalance(user *UpdateBalance) *UpdateBalanceResponse
+	CreateAccount(user *CreateAccount) (*entity.User, error)
+	GetBalance(user *GetBalance) (*entity.User, error)
+	UpdateBalance(user *UpdateBalance) (*entity.User, error)
 }
 
 type BankService struct {
@@ -28,42 +27,21 @@ func NewBankService(bankRep ReposI) *BankService {
 	}
 }
 
-func (s *BankService) CreateAccount(user *CreateAccount) (*CreateAccountResponse, error) {
-	//todo AccountAlreadyExistsErr
-	created := s.bankRep.CreateAccount(user)
-	return created, nil
+func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
+
+	created, err := s.bankRep.CreateAccount(user)
+	return created, err
 }
 
-func (s *BankService) GetBalance(user *GetBalance) *GetBalanceResponse {
-	if _, err := s.bankRep.Get(user.UserID); err != nil {
-		return user.toEntity(0, ChosenAccountNotFoundErr)
-	}
-	return user.toEntity(s.bankRep.Get(user.UserID))
+func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
+	gotBalance, err := s.bankRep.GetBalance(user)
+	return gotBalance, err
 
 }
 
-func (s *BankService) ListAccounts() *ListAccountResponse {
-	if s.bankRep == nil {
-		return &ListAccountResponse{
-			List:  nil,
-			Error: AccountsNotFoundErr,
-		}
-	}
-	list, err := s.bankRep.List()
-	return &ListAccountResponse{
-		List:  list,
-		Error: err,
-	}
-}
+func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
 
-func (s *BankService) UpdateBalance(user *UpdateBalance) *UpdateBalanceResponse {
-	if _, err := s.bankRep.Get(user.UserID); err != nil {
-		return user.toEntity(ChosenAccountNotFoundErr)
-	}
-	balance, _ := s.bankRep.Get(user.UserID)
-	if balance+user.ChangingInBalance < 0 {
-		return user.toEntity(NotEnoughBalanceErr)
-	} else {
-		return user.toEntity(s.bankRep.Update(user.UserID, user.ChangingInBalance))
-	}
+	updatedBalance, err := s.bankRep.UpdateBalance(user)
+	return updatedBalance, err
+
 }

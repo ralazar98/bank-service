@@ -2,13 +2,20 @@ package memory_cache
 
 import "bank-service/internal/entity"
 
-type balance struct {
-	b float64
+type User struct {
+	ID      int
+	Balance Balance
 }
 
-func (b *balance) ToEntity(userID int) *entity.User {
+type Balance struct {
+	Sum int
+}
+
+func (u *User) ToEntity() *entity.User {
 	return &entity.User{
-		ID:      userID,
-		Balance: b.b,
+		ID: u.ID,
+		Balance: entity.Balance{
+			Sum: u.Balance.Sum,
+		},
 	}
 }

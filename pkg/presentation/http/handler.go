@@ -31,7 +31,6 @@ func (a *AccountHandler) techRoute(r chi.Router) {
 func (a *AccountHandler) ApiRoute(r chi.Router) {
 	r.Post("/create", a.CreateAccount)
 	r.Post("/get", a.ShowBalance)
-	r.Get("/list", a.List)
 	r.Post("/update", a.Update)
 }
 
@@ -40,33 +39,46 @@ func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	render.JSON(w, r, a.bankService.CreateAccount(req))
+	res, err := a.bankService.Create(req)
+	if err != nil {
+		render.JSON(w, r, err)
+	}
+	render.JSON(w, r, res)
 }
 
 func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 	var req *services.GetBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, err)
 	}
-	render.JSON(w, r, a.bankService.GetBalance(req))
-
-}
-
-func (a *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
-	res := a.bankService.ListAccounts()
+	res, err := a.bankService.Get(req)
+	if err != nil {
+		render.JSON(w, r, err)
+	}
 	render.JSON(w, r, res)
-	return
+
 }
 
 func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var req *services.UpdateBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, err)
 	}
 	if operation(req.Operation) == TakeOperation {
-		render.JSON(w, r, a.bankService.UpdateBalance(req))
+		req.ChangingInBalance *= -1
+		res, err := a.bankService.Update(req)
+		if err != nil {
+			render.JSON(w, r, err)
 
+		}
+		render.JSON(w, r, res)
 	} else if operation(req.Operation) == AddOperation {
-		render.JSON(w, r, a.bankService.UpdateBalance(req))
+		res, err := a.bankService.Update(req)
+		if err != nil {
+			render.JSON(w, r, err)
+
+		}
+		render.JSON(w, r, res)
 	}
+
 }

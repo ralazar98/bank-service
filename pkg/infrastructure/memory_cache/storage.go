@@ -7,66 +7,62 @@ import (
 )
 
 type BankStorage struct {
-	list map[int]balance
+	list map[int]Balance
 	m    sync.RWMutex
-}
-
-func (s *BankStorage) CreateAccount(user *services.CreateAccount) *entity.User {
-	userID := user.UserID
-	b := balance{
-		b: user.Balance,
-	}
-
-	s.m.Lock()
-	defer s.m.Unlock()
-
-	s.list[userID] = b
-	return b.ToEntity(userID)
-}
-
-func (s *BankStorage) GetBalance(user *services.GetBalance) *services.GetBalanceResponse {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *BankStorage) ListAccounts() *services.ListAccountResponse {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *BankStorage) UpdateBalance(user *services.UpdateBalance) *services.UpdateBalanceResponse {
-	//TODO implement me
-	panic("implement me")
 }
 
 func New() *BankStorage {
 	return &BankStorage{
-		list: make(map[int]float64),
+		list: make(map[int]Balance),
 	}
 }
 
-func (s *BankStorage) Create(userID int, balance float64) error {
+func (s *BankStorage) CreateAccount(user *services.CreateAccount) (*entity.User, error) {
+	var userRep User
+	userRep.ID = user.UserID
+	userRep.Balance = Balance{
+		Sum: user.Balance,
+	}
+	_, ok := s.list[user.UserID]
+	if ok {
+		return nil, services.AccountAlreadyExistsErr
+	} else {
+		s.m.Lock()
+		defer s.m.Unlock()
+		s.list[userRep.ID] = userRep.Balance
+	}
+	return userRep.ToEntity(), nil
+}
+
+func (s *BankStorage) GetBalance(user *services.GetBalance) (*entity.User, error) {
+	var userRep User
+	userRep.ID = user.UserID
+	_, ok := s.list[user.UserID]
+	if ok {
+		s.m.RLock()
+		defer s.m.RUnlock()
+		userRep.Balance = s.list[userRep.ID]
+		return userRep.ToEntity(), nil
+	} else {
+		return nil, services.ChosenAccountNotFoundErr
+	}
+}
+
+func (s *BankStorage) UpdateBalance(user *services.UpdateBalance) (*entity.User, error) {
+	var userRep User
 	s.m.Lock()
 	defer s.m.Unlock()
-	s.list[userID] = balance
-	return nil
-}
-
-func (s *BankStorage) Get(userID int) (float64, error) {
-	s.m.RLock()
-	defer s.m.RUnlock()
-	return s.list[userID], nil
-}
-
-func (s *BankStorage) List() (map[int]float64, error) {
-	s.m.RLock()
-	defer s.m.RUnlock()
-	return s.list, nil
-}
-
-func (s *BankStorage) Update(userID int, changingInBalance float64) error {
-	s.m.Lock()
-	defer s.m.Unlock()
-	s.list[userID] += changingInBalance
-	return nil
+	userRep.ID = user.UserID
+	balance, ok := s.list[userRep.ID]
+	if ok {
+		if balance.Sum+user.ChangingInBalance < 0 {
+			return nil, services.NotEnoughBalanceErr
+		}
+		balance.Sum += user.ChangingInBalance
+		s.list[user.UserID] = balance
+		userRep.Balance = balance
+	} else {
+		return nil, services.ChosenAccountNotFoundErr
+	}
+	return userRep.ToEntity(), nil
 }
