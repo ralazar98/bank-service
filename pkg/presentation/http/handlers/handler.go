@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"bank-service/internal/services"
@@ -18,14 +18,8 @@ type AccountHandler struct {
 	bankService *services.BankService
 }
 
-func NewAccountHandler(service *services.BankService) *AccountHandler {
-	return &AccountHandler{
-		bankService: service,
-	}
-}
-
-func (a *AccountHandler) techRoute(r chi.Router) {
-	//todo: tech
+func NewAccountHandler(bankService *services.BankService) *AccountHandler {
+	return &AccountHandler{bankService}
 }
 
 func (a *AccountHandler) ApiRoute(r chi.Router) {
@@ -80,5 +74,4 @@ func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 		render.JSON(w, r, res)
 	}
-
 }

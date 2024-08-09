@@ -3,7 +3,7 @@ package main
 import (
 	"bank-service/internal/services"
 	"bank-service/pkg/infrastructure/memory_cache"
-	http2 "bank-service/pkg/presentation/http"
+	http2 "bank-service/pkg/presentation/http/handlers"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -17,5 +17,4 @@ func main() {
 	accountHandler := http2.NewAccountHandler(service)
 	accountHandler.ApiRoute(r)
 	http.ListenAndServe(":8080", r)
-
 }
