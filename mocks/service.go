@@ -1,4 +1,5 @@
-package mocks
+// Package mock_services is a generated GoMock package.
+package mock_services
 
 import (
 	entity "bank-service/internal/entity"
@@ -63,7 +64,6 @@ func (mr *MockReposIMockRecorder) GetBalance(user any) *gomock.Call {
 
 // UpdateBalance mocks base method.
 func (m *MockReposI) UpdateBalance(user *services.UpdateBalance) (*entity.User, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateBalance", user)
 	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)

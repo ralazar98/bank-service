@@ -18,30 +18,30 @@ type ReposI interface {
 }
 
 type BankService struct {
-	bankRep ReposI
+	BankRep ReposI
 }
 
 func NewBankService(bankRep ReposI) *BankService {
 	return &BankService{
-		bankRep: bankRep,
+		BankRep: bankRep,
 	}
 }
 
 func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
 
-	created, err := s.bankRep.CreateAccount(user)
+	created, err := s.BankRep.CreateAccount(user)
 	return created, err
 }
 
 func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
-	gotBalance, err := s.bankRep.GetBalance(user)
+	gotBalance, err := s.BankRep.GetBalance(user)
 	return gotBalance, err
 
 }
 
 func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
 
-	updatedBalance, err := s.bankRep.UpdateBalance(user)
+	updatedBalance, err := s.BankRep.UpdateBalance(user)
 	return updatedBalance, err
 
 }
