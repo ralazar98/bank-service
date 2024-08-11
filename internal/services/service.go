@@ -28,8 +28,10 @@ func NewBankService(bankRep ReposI) *BankService {
 }
 
 func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
-
 	created, err := s.BankRep.CreateAccount(user)
+	if err != nil {
+		return nil, err
+	}
 	return created, err
 }
 

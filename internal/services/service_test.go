@@ -4,6 +4,7 @@ import (
 	"bank-service/internal/entity"
 	"bank-service/internal/services"
 	"bank-service/mocks"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"reflect"
 	"testing"
@@ -30,6 +31,7 @@ func TestBankService_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -43,6 +45,7 @@ func TestBankService_Create(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Create() got = %v, want %v", got, tt.want)
 			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
