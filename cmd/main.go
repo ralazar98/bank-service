@@ -15,6 +15,7 @@ func main() {
 	service := services.NewBankService(store)
 
 	accountHandler := http2.NewAccountHandler(service)
+
 	accountHandler.ApiRoute(r)
 	http.ListenAndServe(":8080", r)
 }

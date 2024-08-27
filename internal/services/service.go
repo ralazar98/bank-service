@@ -9,6 +9,8 @@ var (
 	NotEnoughBalanceErr      = errors.New("not enough balance")
 	ChosenAccountNotFoundErr = errors.New("chosen account not found")
 	AccountAlreadyExistsErr  = errors.New("account already exists")
+	MinusBalanceErr          = errors.New("minus balance")
+	WrongIdErr               = errors.New("wrong id")
 )
 
 type ReposI interface {
@@ -28,6 +30,12 @@ func NewBankService(bankRep ReposI) *BankService {
 }
 
 func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
+	if user.Balance < 0 {
+		return nil, MinusBalanceErr
+	}
+	if user.UserID < 0 {
+		return nil, WrongIdErr
+	}
 	created, err := s.BankRep.CreateAccount(user)
 	if err != nil {
 		return nil, err
@@ -36,6 +44,9 @@ func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
 }
 
 func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
+	if user.UserID < 0 {
+		return nil, WrongIdErr
+	}
 	gotBalance, err := s.BankRep.GetBalance(user)
 	return gotBalance, err
 
