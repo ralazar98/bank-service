@@ -55,7 +55,7 @@ func TestBankService_Create(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "base_test",
+			name: "CreateAccount Success",
 			args: args{CreateAccountUser(1, 100)},
 			want: CreateEntityUser(1, 100),
 			prepare: func() {
@@ -65,7 +65,7 @@ func TestBankService_Create(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "AccountAlreadyExists_test",
+			name: "CreateAccount Failed, already exist",
 			args: args{CreateAccountUser(1, 100)},
 			want: nil,
 			prepare: func() {
@@ -74,25 +74,25 @@ func TestBankService_Create(t *testing.T) {
 			},
 			wantErr: services.AccountAlreadyExistsErr,
 		},
-		/*		{
-					name: "minus_balance_test",
-					args: args{CreateAccountUser(2, -100)},
-					want: nil,
-					prepare: func() {
-						bankRepMock.EXPECT().CreateAccount(CreateAccountUser(2, -100)).
-							Return(nil, services.MinusBalanceErr)
-					},
-					wantErr: services.MinusBalanceErr,
-				},
-				{
-					name: "wrong_ID_test",
-					args: args{CreateAccountUser(-1, 100)},
-					want: nil,
-					prepare: func() {
-						bankRepMock.EXPECT().GetBalance(CreateAccountUser(-1, 100)).Return(nil, services.WrongIdErr)
-					},
-					wantErr: services.WrongIdErr,
-				},*/
+		{
+			name: "CreateAccount Failed, minus balance",
+			args: args{CreateAccountUser(10, -100)},
+			want: nil,
+			prepare: func() {
+				bankRepMock.EXPECT().CreateAccount(CreateAccountUser(2, -100)).
+					Return(nil, services.MinusBalanceErr)
+			},
+			wantErr: services.MinusBalanceErr,
+		},
+		{
+			name: "CreateAccount Failed, wrong ID",
+			args: args{CreateAccountUser(-1, 100)},
+			want: nil,
+			prepare: func() {
+				bankRepMock.EXPECT().CreateAccount(CreateAccountUser(-1, 100)).Return(nil, services.WrongIdErr)
+			},
+			wantErr: services.WrongIdErr,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -123,7 +123,7 @@ func TestBankService_Get(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "base_test",
+			name: "Get balance Success",
 			args: args{GetBalanceUser(1)},
 			want: CreateEntityUser(1, 100),
 			prepare: func() {
@@ -132,7 +132,7 @@ func TestBankService_Get(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "not_exists_test",
+			name: "Get balance Failed, not found",
 			args: args{GetBalanceUser(6)},
 			want: nil,
 			prepare: func() {
@@ -140,15 +140,15 @@ func TestBankService_Get(t *testing.T) {
 			},
 			wantErr: services.ChosenAccountNotFoundErr,
 		},
-		/*		{
-				name: "wrong_ID_test",
-				args: args{GetBalanceUser(-1)},
-				want: nil,
-				prepare: func() {
-					bankRepMock.EXPECT().GetBalance(GetBalanceUser(-1)).Return(nil, services.WrongIdErr)
-				},
-				wantErr: services.WrongIdErr,
-			},*/
+		{
+			name: "Get balance Failed, wrong ID",
+			args: args{GetBalanceUser(-1)},
+			want: nil,
+			prepare: func() {
+				bankRepMock.EXPECT().GetBalance(GetBalanceUser(-1)).Return(nil, services.WrongIdErr)
+			},
+			wantErr: services.WrongIdErr,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -182,7 +182,7 @@ func TestBankService_Update(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "add_money_test",
+			name: "Update(add) balance Success",
 			args: args{user: UpdateBalanceUser(1, 50)},
 			want: CreateEntityUser(1, 150),
 			prepare: func() {
@@ -192,7 +192,7 @@ func TestBankService_Update(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "take_money_test",
+			name: "Update(take) balance Success",
 			args: args{user: UpdateBalanceUser(1, -50)},
 			want: CreateEntityUser(1, 50),
 			prepare: func() {
@@ -202,7 +202,7 @@ func TestBankService_Update(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "not_enough_money_test",
+			name: "Update take(failed) failed,not enough balance",
 			args: args{user: UpdateBalanceUser(1, -150)},
 			want: nil,
 			prepare: func() {

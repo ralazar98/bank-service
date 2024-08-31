@@ -30,14 +30,19 @@ func (a *AccountHandler) ApiRoute(r chi.Router) {
 
 func (a *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var req *services.CreateAccount
+
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	res, err := a.bankService.Create(req)
 	if err != nil {
-		render.JSON(w, r, err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		render.JSON(w, r, res)
 	}
-	render.JSON(w, r, res)
+
 }
 
 func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
@@ -45,33 +50,50 @@ func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.JSON(w, r, err)
 	}
-	res, err := a.bankService.Get(req)
-	if err != nil {
-		render.JSON(w, r, err)
-	}
-	render.JSON(w, r, res)
+	res, err1 := a.bankService.Get(req)
 
+	if err1 != nil {
+
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err1.Error()))
+	} else {
+
+		render.JSON(w, r, res)
+
+	}
 }
 
 func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var req *services.UpdateBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		render.JSON(w, r, err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
 	}
+
 	if operation(req.Operation) == TakeOperation {
 		req.ChangingInBalance *= -1
+
 		res, err := a.bankService.Update(req)
 		if err != nil {
-			render.JSON(w, r, err)
-
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+		} else {
+			render.JSON(w, r, res)
 		}
-		render.JSON(w, r, res)
+
 	} else if operation(req.Operation) == AddOperation {
+
 		res, err := a.bankService.Update(req)
 		if err != nil {
-			render.JSON(w, r, err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+		} else {
+			render.JSON(w, r, res)
 
 		}
-		render.JSON(w, r, res)
+
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(services.InvalidOperationErr.Error()))
 	}
 }

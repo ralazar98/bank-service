@@ -18,7 +18,8 @@ func New() *BankStorage {
 }
 
 func (s *BankStorage) CreateAccount(user *services.CreateAccount) (*entity.User, error) {
-	var userRep *User
+
+	var userRep User
 	userRep.ID = user.UserID
 	userRep.Balance = Balance{
 		Sum: user.Balance,
@@ -35,7 +36,7 @@ func (s *BankStorage) CreateAccount(user *services.CreateAccount) (*entity.User,
 }
 
 func (s *BankStorage) GetBalance(user *services.GetBalance) (*entity.User, error) {
-	var userRep *User
+	var userRep User
 	userRep.ID = user.UserID
 	_, ok := s.list[user.UserID]
 	if ok {
@@ -49,7 +50,7 @@ func (s *BankStorage) GetBalance(user *services.GetBalance) (*entity.User, error
 }
 
 func (s *BankStorage) UpdateBalance(user *services.UpdateBalance) (*entity.User, error) {
-	var userRep *User
+	var userRep User
 	s.m.Lock()
 	defer s.m.Unlock()
 	userRep.ID = user.UserID
@@ -60,7 +61,8 @@ func (s *BankStorage) UpdateBalance(user *services.UpdateBalance) (*entity.User,
 		}
 		balance.Sum += user.ChangingInBalance
 		s.list[user.UserID] = balance
-		userRep.Balance = balance
+		userRep.Balance = s.list[user.UserID]
+
 	} else {
 		return nil, services.ChosenAccountNotFoundErr
 	}

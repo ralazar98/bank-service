@@ -11,6 +11,7 @@ var (
 	AccountAlreadyExistsErr  = errors.New("account already exists")
 	MinusBalanceErr          = errors.New("minus balance")
 	WrongIdErr               = errors.New("wrong id")
+	InvalidOperationErr      = errors.New("invalid operation")
 )
 
 type ReposI interface {
@@ -47,7 +48,9 @@ func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
+
 	gotBalance, err := s.BankRep.GetBalance(user)
+
 	return gotBalance, err
 
 }
