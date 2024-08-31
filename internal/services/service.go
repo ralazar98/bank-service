@@ -56,7 +56,9 @@ func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
 }
 
 func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
-
+	if user.UserID < 0 {
+		return nil, WrongIdErr
+	}
 	updatedBalance, err := s.BankRep.UpdateBalance(user)
 	return updatedBalance, err
 
