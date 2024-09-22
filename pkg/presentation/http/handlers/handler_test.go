@@ -3,7 +3,7 @@ package handlers
 import (
 	"bank-service/internal/entity"
 	"bank-service/internal/services"
-	"bank-service/pkg/infrastructure/memory_cache"
+	"bank-service/pkg/infrastructure/memory_cache/map"
 	"bytes"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
@@ -14,10 +14,21 @@ import (
 	"testing"
 )
 
-func TestAccountHandler_test(t *testing.T) {
-	bankRep := memory_cache.New()
-	service := services.NewBankService(bankRep)
-	handler := NewAccountHandler(service)
+var (
+	bankRep *_map.BankStorage
+	service *services.BankService
+	handler *AccountHandler
+)
+
+func TestMain(m *testing.M) {
+
+	bankRep = _map.New()
+	service = services.NewBankService(bankRep)
+	handler = NewAccountHandler(service)
+	m.Run()
+}
+
+func TestAccountHandler_CreateAccount(t *testing.T) {
 
 	testTable := []struct {
 		name     string
@@ -70,6 +81,9 @@ func TestAccountHandler_test(t *testing.T) {
 		})
 	}
 
+}
+
+func TestAccountHandler_ShowBalance(t *testing.T) {
 	testTable1 := []struct {
 		name     string
 		body     services.GetBalance
@@ -121,7 +135,9 @@ func TestAccountHandler_test(t *testing.T) {
 
 		})
 	}
+}
 
+func TestAccountHandler_Update(t *testing.T) {
 	testTable2 := []struct {
 		name     string
 		body     services.UpdateBalance
@@ -159,6 +175,7 @@ func TestAccountHandler_test(t *testing.T) {
 			wantErr: services.NotEnoughBalanceErr,
 		},
 	}
+
 	for _, tt := range testTable2 {
 		t.Run(tt.name, func(t *testing.T) {
 			bodyJSON, errMarsh := json.Marshal(tt.body)

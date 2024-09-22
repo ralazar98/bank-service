@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bank-service/internal/entity"
 	"bank-service/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -14,11 +15,17 @@ const (
 	TakeOperation operation = "take"
 )
 
-type AccountHandler struct {
-	bankService *services.BankService
+type BankServiceI interface {
+	Create(user *services.CreateAccount) (*entity.User, error)
+	Get(user *services.GetBalance) (*entity.User, error)
+	Update(user *services.UpdateBalance) (*entity.User, error)
 }
 
-func NewAccountHandler(bankService *services.BankService) *AccountHandler {
+type AccountHandler struct {
+	bankService BankServiceI
+}
+
+func NewAccountHandler(bankService BankServiceI) *AccountHandler {
 	return &AccountHandler{bankService}
 }
 
@@ -50,12 +57,12 @@ func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.JSON(w, r, err)
 	}
-	res, err1 := a.bankService.Get(req)
+	res, err := a.bankService.Get(req)
 
-	if err1 != nil {
+	if err != nil {
 
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err1.Error()))
+		w.Write([]byte(err.Error()))
 	} else {
 
 		render.JSON(w, r, res)

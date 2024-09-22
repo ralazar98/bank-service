@@ -1,4 +1,4 @@
-package memory_cache
+package _map
 
 import (
 	"bank-service/internal/entity"

@@ -37,6 +37,10 @@ func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
+	_, err := s.Get(&GetBalance{UserID: user.UserID})
+	if err == nil {
+		return nil, AccountAlreadyExistsErr
+	}
 	created, err := s.BankRep.CreateAccount(user)
 	if err != nil {
 		return nil, err
@@ -50,6 +54,9 @@ func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
 	}
 
 	gotBalance, err := s.BankRep.GetBalance(user)
+	if err != nil {
+		return nil, ChosenAccountNotFoundErr
+	}
 
 	return gotBalance, err
 
@@ -59,7 +66,14 @@ func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
+	_, err := s.Get(&GetBalance{UserID: user.UserID})
+	if err != nil {
+		return nil, ChosenAccountNotFoundErr
+	}
 	updatedBalance, err := s.BankRep.UpdateBalance(user)
+	if err != nil {
+		return nil, err
+	}
 	return updatedBalance, err
 
 }

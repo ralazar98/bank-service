@@ -99,7 +99,7 @@ func TestBankService_Create(t *testing.T) {
 			tt.prepare()
 			got, err := service.Create(tt.args.user)
 			if err != nil {
-				assert.Errorf(t, err, "error")
+				assert.ErrorIs(t, err, tt.wantErr)
 			}
 			assert.Equal(t, tt.want, got)
 		})

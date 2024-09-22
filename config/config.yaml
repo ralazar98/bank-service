@@ -1,0 +1,11 @@
+env: "local"
+http_config:
+  address: "localhost:8080"
+storage_config:
+  host: "localhost"
+  port: 5438
+  database: "postgres"
+  username: "my_user"
+  password: 1234
+
+  
