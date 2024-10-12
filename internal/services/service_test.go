@@ -2,8 +2,8 @@ package services_test
 
 import (
 	"bank-service/internal/entity"
+	"bank-service/internal/mocks"
 	"bank-service/internal/services"
-	"bank-service/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"testing"
@@ -44,7 +44,7 @@ func TestBankService_Create(t *testing.T) {
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	bankRepMock := mock_services.NewMockReposI(ctrl)
+	bankRepMock := mock_services.mock_services.NewMockReposI(ctrl)
 	service := NewBankService(bankRepMock)
 
 	tests := []struct {
@@ -164,7 +164,7 @@ func TestBankService_Get(t *testing.T) {
 
 func TestBankService_Update(t *testing.T) {
 	type fields struct {
-		BankRep *mock_services.MockReposI
+		BankRep *mock_services.mock_services
 	}
 	type args struct {
 		user *services.UpdateBalance
@@ -225,7 +225,7 @@ func TestBankService_Update(t *testing.T) {
 	}
 }
 
-func NewBankService(rep *mock_services.MockReposI) *services.BankService {
+func NewBankService(rep *mock_services.mock_services) *services.BankService {
 	return &services.BankService{
 		BankRep: rep,
 	}

@@ -1,27 +1,25 @@
 package main
 
 import (
-	"bank-service/internal/config"
+	http2 "bank-service/internal/handlers"
+	"bank-service/internal/repository/postgresql"
 	"bank-service/internal/services"
-	"bank-service/pkg/infrastructure/memory_cache/postgresql"
-	http2 "bank-service/pkg/presentation/http/handlers"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	_ "net/http/pprof"
+	"os"
 )
 
 func main() {
-	cfg := config.InitConfig()
-
-	conConfig := postgresql.NewConnConfig(cfg)
-	conn, _ := postgresql.NewConnect(conConfig)
-
-	store := postgresql.New(conn)
-
+	//Создает роутер
+	r := chi.NewRouter()
+	http2.RegisMetrics()
+	store := postgresql.New()
 	service := services.NewBankService(store)
 	accountHandler := http2.NewAccountHandler(service)
 
-	r := chi.NewRouter()
 	accountHandler.ApiRoute(r)
+	address := ":" + os.Getenv("PORT")
+	http.ListenAndServe(address, r)
 
-	http.ListenAndServe("localhost:8080", r)
 }
