@@ -6,6 +6,7 @@ import (
 	"bank-service/internal/services"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"net/http/pprof"
 	_ "net/http/pprof"
 	"os"
 )
@@ -13,6 +14,8 @@ import (
 func main() {
 	//Создает роутер
 	r := chi.NewRouter()
+	r.Mount("/debug/pprof/", http.StripPrefix("/debug/pprof", http.HandlerFunc(pprof.Index)))
+
 	http2.RegisMetrics()
 	store := postgresql.New()
 	service := services.NewBankService(store)
