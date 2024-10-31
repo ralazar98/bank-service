@@ -32,7 +32,10 @@ func (a *AccountHandler) ApiRoute(r chi.Router) {
 	r.Post("/create", a.CreateAccount)
 	r.Post("/get", a.ShowBalance)
 	r.Post("/update", a.Update)
-	r.Get("/health", HealthCheckHandler)
-	r.Handle("/metrics", promhttp.Handler())
+}
 
+func (a *AccountHandler) TechRoute(r chi.Router) {
+	r.Handle("/metrics", promhttp.Handler())
+	r.Get("/health", HealthCheckHandler)
+	r.Get("/version", VersionHandler)
 }

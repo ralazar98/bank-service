@@ -4,7 +4,6 @@ import (
 	"bank-service/internal/entity"
 	"bank-service/internal/services"
 	"github.com/jackc/pgx"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strconv"
@@ -16,14 +15,9 @@ type BankStorage struct {
 }
 
 func New() *BankStorage {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	dbHost := os.Getenv("DB_HOST")
 	dbPortStr := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USERNAME")
+	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	dbPort, err := strconv.Atoi(dbPortStr)
@@ -43,12 +37,15 @@ func New() *BankStorage {
 		MaxConnections: 20,
 	})
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Ошибка подключения")
+		log.Println(err)
+	} else {
+		log.Print("Подключено к БД")
+		return &BankStorage{
+			conn: pool,
+		}
 	}
-	log.Print("Подключено к БД")
-	return &BankStorage{
-		conn: pool,
-	}
+	return &BankStorage{}
 }
 
 func (s *BankStorage) CreateAccount(user *services.CreateAccount) (*entity.User, error) {

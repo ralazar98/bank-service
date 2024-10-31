@@ -12,16 +12,20 @@ import (
 )
 
 func main() {
+	//configs.GetEnv()
 	//Создает роутер
 	r := chi.NewRouter()
+
+	r.Use(http2.RequestLogger)
+	r.Use(http2.MetricsMiddleware)
 	r.Mount("/debug/pprof/", http.StripPrefix("/debug/pprof", http.HandlerFunc(pprof.Index)))
 
-	http2.RegisMetrics()
 	store := postgresql.New()
 	service := services.NewBankService(store)
 	accountHandler := http2.NewAccountHandler(service)
 
 	accountHandler.ApiRoute(r)
+	accountHandler.TechRoute(r)
 	address := ":" + os.Getenv("PORT")
 	http.ListenAndServe(address, r)
 

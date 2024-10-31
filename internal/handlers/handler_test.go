@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"bank-service/internal/entity"
+	"bank-service/internal/repository/memory_cache/map"
 	"bank-service/internal/services"
-	"bank-service/pkg/infrastructure/memory_cache/map"
 	"bytes"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"

@@ -1,36 +1,38 @@
 services:
   postgres:
     image: postgres
-    container_name: my_postgres
+    container_name: postgres-container
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: my_user
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
     ports:
       - "5438:5432"
-
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
     networks:
-      - monitoring
+      - app-network
 
-
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - "3001:3000"
+  bank-service:
+    build:
+      context: .
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: my_user
+      DB_PASSWORD: 1234
+      DB_NAME: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
     networks:
-      - monitoring
+      - app-network
 
 networks:
-  monitoring:
-    driver: bridge
+  app-network:
 
+volumes:
+  postgres-data:
