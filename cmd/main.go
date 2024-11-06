@@ -6,26 +6,28 @@ import (
 	"bank-service/internal/services"
 	"github.com/go-chi/chi/v5"
 	"net/http"
-	"net/http/pprof"
 	_ "net/http/pprof"
 	"os"
 )
 
 func main() {
-	//configs.GetEnv()
-	//Создает роутер
 	r := chi.NewRouter()
 
 	r.Use(http2.RequestLogger)
-	r.Use(http2.MetricsMiddleware)
-	r.Mount("/debug/pprof/", http.StripPrefix("/debug/pprof", http.HandlerFunc(pprof.Index)))
+
+	apiRouter := chi.NewRouter()
+	apiRouter.Use(http2.MetricsMiddleware)
 
 	store := postgresql.New()
 	service := services.NewBankService(store)
 	accountHandler := http2.NewAccountHandler(service)
+	techRouterHandler := http2.NewTechRouteHandler()
 
-	accountHandler.ApiRoute(r)
-	accountHandler.TechRoute(r)
+	accountHandler.ApiRoute(apiRouter)
+	techRouterHandler.TechRoute(r)
+
+	r.Mount("/api", apiRouter)
+
 	address := ":" + os.Getenv("PORT")
 	http.ListenAndServe(address, r)
 

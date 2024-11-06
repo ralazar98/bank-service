@@ -5,6 +5,8 @@ import (
 	"bank-service/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
+	"net/http/pprof"
 )
 
 type operation string
@@ -34,8 +36,9 @@ func (a *AccountHandler) ApiRoute(r chi.Router) {
 	r.Post("/update", a.Update)
 }
 
-func (a *AccountHandler) TechRoute(r chi.Router) {
+func (t *TechRoute) TechRoute(r chi.Router) {
 	r.Handle("/metrics", promhttp.Handler())
-	r.Get("/health", HealthCheckHandler)
-	r.Get("/version", VersionHandler)
+	r.Mount("/debug/pprof/", http.StripPrefix("/debug/pprof", http.HandlerFunc(pprof.Index)))
+	r.Get("/health", t.HealthCheckHandler)
+	r.Get("/version", t.VersionHandler)
 }

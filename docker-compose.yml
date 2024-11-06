@@ -17,17 +17,36 @@ services:
   bank-service:
     build:
       context: .
-    environment:
-      PORT: 8080
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: my_user
-      DB_PASSWORD: 1234
-      DB_NAME: postgres
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
     networks:
       - app-network
 
@@ -36,3 +55,5 @@ networks:
 
 volumes:
   postgres-data:
+  prometheus-data:
+  grafana-data:
