@@ -34,6 +34,7 @@ func MetricsMiddleware(next http.Handler) http.Handler {
 		sw := &statusWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		start := time.Now()
 		duration := time.Since(start).Seconds()
+
 		defer func() {
 			RequestsCounter.WithLabelValues(r.Method, strconv.Itoa(sw.statusCode)).Inc()
 			ResponseDuration.Observe(duration)
