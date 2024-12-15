@@ -2,29 +2,31 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 )
 
-func failOnError(err error, msg string) {
+func FailOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 	}
 }
 
-func sendToPaymentService(user *UpdateBalance) error {
+func sendToPaymentService(user *UpdateBalance) {
 
 	body, err := json.Marshal(user)
 	if err != nil {
 		log.Fatal("marshal err: ", err)
 	}
 
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	FailOnError(err, "Failed to connect to RabbitMQ")
+	log.Println("RabbitMQ connected")
 	defer conn.Close()
 
 	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	FailOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
 	queue, err := ch.QueueDeclare(
@@ -35,7 +37,7 @@ func sendToPaymentService(user *UpdateBalance) error {
 		false,
 		nil,
 	)
-	failOnError(err, "Failed to declare a queue")
+	FailOnError(err, "Failed to declare a queue")
 
 	err = ch.Publish(
 		"",
@@ -47,29 +49,56 @@ func sendToPaymentService(user *UpdateBalance) error {
 			Body:        body,
 		},
 	)
-	failOnError(err, "Failed to publish a message")
-	return nil
+	FailOnError(err, "Failed to publish a message")
+
 }
 
-func main() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+func Rabbit(service *BankService) {
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
 	defer conn.Close()
+
 	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	if err != nil {
+		log.Fatalf("Failed to open a channel: %v", err)
+	}
 	defer ch.Close()
 
 	queue, err := ch.QueueDeclare(
-		"queue_of_payment",
-		false,
-		false,
-		false,
-		false,
-		nil,
+		"queue_of_payment", // Имя очереди
+		false,              // Не является долговечной (не сохраняется при перезапуске брокера)
+		false,              // Не удаляется автоматически, если не используется
+		false,              // Не является эксклюзивной (доступна для других подключений)
+		false,              // Без ожидания подтверждения от брокера
+		nil,                // Дополнительные аргументы отсутствуют
 	)
-	failOnError(err, "Failed to declare a queue")
-	deliveries, err := ch.Consume(
-		queue.Name,
+	FailOnError(err, "Failed to declare a queue")
+
+	go func() {
+		mess, err := ch.Consume(
+			queue.Name, // queue
+			"",         // consumer
+			false,      // auto-ack
+			false,      // exclusive
+			false,      // no-local
+			false,      // no-wait
+			nil,        // args
+		)
+		if err != nil {
+			log.Fatalf("Failed to register a consumer: %v", err)
+		}
+		fmt.Print(mess)
+		log.Printf("Waiting for messages from queue: %s", queue.Name)
+		//updater(service, mess)
+	}()
+
+}
+
+func (s *BankService) Updater(channel *amqp.Channel, nameOfQueue string) {
+	msgs, err := channel.Consume(
+		nameOfQueue, // Имя очереди
 		"",
 		true,
 		false,
@@ -77,17 +106,61 @@ func main() {
 		false,
 		nil,
 	)
-	failOnError(err, "Failed to register a consumer")
-}
-
-func handle(deliveries <-chan amqp.Delivery) {
-	for d := range deliveries {
-		var user UpdateBalance
-		err := json.Unmarshal(d.Body, &user)
+	if channel.IsClosed() {
+		log.Println("Канал закрыт после")
+		return
+	}
+	FailOnError(err, "Не удалось зарегистрировать потребителя")
+	log.Println("UPDATER")
+	for message := range msgs {
+		var user *UpdateBalance
+		err := json.Unmarshal(message.Body, &user)
 		if err != nil {
 			log.Fatal("unmarshal err: ", err)
 		}
-		err =
-
+		updatedBalance, err := s.BankRep.UpdateBalance(user)
+		if err != nil {
+			log.Fatal("update err: ", err)
+		}
+		log.Printf("Updated balance: %+v", updatedBalance)
 	}
+}
+
+func CheckUpdateData(channel *amqp.Channel, nameOfQueue string) {
+
+	go func() {
+		/*		if conn.IsClosed() {
+				log.Println("Соединение закрыто")
+			}*/
+		if channel.IsClosed() {
+			log.Println("Канал закрыт")
+			return
+		} else {
+			log.Println("Канал открыт")
+		}
+		msgs, err := channel.Consume(
+			nameOfQueue, // Имя очереди
+			"",
+			true,
+			false,
+			false,
+			false,
+			nil,
+		)
+		if channel.IsClosed() {
+			log.Println("Канал закрыт после")
+			return
+		}
+		FailOnError(err, "Не удалось зарегистрировать потребителя")
+
+		for messages := range msgs {
+			var user *UpdateBalance
+			err := json.Unmarshal(messages.Body, &user)
+			if err != nil {
+				log.Fatal("unmarshal err: ", err)
+			}
+			log.Println("TEST")
+			log.Printf("Updated balance: %+v", user.ChangingInBalance)
+		}
+	}()
 }

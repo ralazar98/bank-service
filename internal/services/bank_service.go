@@ -71,10 +71,9 @@ func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
 		return nil, ChosenAccountNotFoundErr
 	}
 	//updatedBalance, err := s.BankRep.UpdateBalance(user)
-	err = sendToPaymentService(user)
-	if err != nil {
-		return nil, err
-	}
+
+	sendToPaymentService(user)
+
 	updatedBalance, _ := s.Get(&GetBalance{UserID: user.UserID})
 	return updatedBalance, err
 

@@ -23,6 +23,7 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+      - rabbitmq
     networks:
       - app-network
 
@@ -47,6 +48,14 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
     volumes:
       - grafana-data:/var/lib/grafana
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - app-network
 
