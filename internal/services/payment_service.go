@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 )
@@ -50,49 +49,6 @@ func sendToPaymentService(user *UpdateBalance) {
 		},
 	)
 	FailOnError(err, "Failed to publish a message")
-
-}
-
-func Rabbit(service *BankService) {
-	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
-	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
-	}
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-	if err != nil {
-		log.Fatalf("Failed to open a channel: %v", err)
-	}
-	defer ch.Close()
-
-	queue, err := ch.QueueDeclare(
-		"queue_of_payment", // Имя очереди
-		false,              // Не является долговечной (не сохраняется при перезапуске брокера)
-		false,              // Не удаляется автоматически, если не используется
-		false,              // Не является эксклюзивной (доступна для других подключений)
-		false,              // Без ожидания подтверждения от брокера
-		nil,                // Дополнительные аргументы отсутствуют
-	)
-	FailOnError(err, "Failed to declare a queue")
-
-	go func() {
-		mess, err := ch.Consume(
-			queue.Name, // queue
-			"",         // consumer
-			false,      // auto-ack
-			false,      // exclusive
-			false,      // no-local
-			false,      // no-wait
-			nil,        // args
-		)
-		if err != nil {
-			log.Fatalf("Failed to register a consumer: %v", err)
-		}
-		fmt.Print(mess)
-		log.Printf("Waiting for messages from queue: %s", queue.Name)
-		//updater(service, mess)
-	}()
 
 }
 

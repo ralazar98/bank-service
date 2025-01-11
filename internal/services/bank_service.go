@@ -74,6 +74,7 @@ func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
 
 	sendToPaymentService(user)
 
+	//Спросить!!!
 	updatedBalance, _ := s.Get(&GetBalance{UserID: user.UserID})
 	return updatedBalance, err
 
