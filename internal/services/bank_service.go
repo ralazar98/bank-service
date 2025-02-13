@@ -1,7 +1,9 @@
 package services
 
 import (
+	"bank-service/configs"
 	"bank-service/internal/entity"
+	"bank-service/internal/rabbit"
 	"errors"
 )
 
@@ -15,40 +17,48 @@ var (
 )
 
 type ReposI interface {
-	CreateAccount(user *CreateAccount) (*entity.User, error)
-	GetBalance(user *GetBalance) (*entity.User, error)
-	UpdateBalance(user *UpdateBalance) (*entity.User, error)
+	CreateAccount(user *entity.CreateAccount) (*entity.User, error)
+	GetBalance(user *entity.GetBalance) (*entity.User, error)
+	Update(user *entity.UpdateBalance) (*entity.User, error)
 }
 
 type BankService struct {
 	BankRep ReposI
+	cfg     *configs.Config
+	rabbit  *rabbit.Rabbit
 }
 
-func NewBankService(bankRep ReposI) *BankService {
+func NewBankService(bankRep ReposI, cfg *configs.Config, newRabbit *rabbit.Rabbit) *BankService {
 	return &BankService{
 		BankRep: bankRep,
+		cfg:     cfg,
+		rabbit:  newRabbit,
 	}
 }
 
-func (s *BankService) Create(user *CreateAccount) (*entity.User, error) {
+func (s *BankService) Create(user *entity.CreateAccount) (*entity.User, error) {
 	if user.Balance < 0 {
 		return nil, MinusBalanceErr
 	}
+
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
-	_, err := s.Get(&GetBalance{UserID: user.UserID})
+
+	_, err := s.Get(&entity.GetBalance{UserID: user.UserID})
 	if err == nil {
 		return nil, AccountAlreadyExistsErr
 	}
+
 	created, err := s.BankRep.CreateAccount(user)
 	if err != nil {
 		return nil, err
 	}
+
 	return created, err
 }
 
-func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
+func (s *BankService) Get(user *entity.GetBalance) (*entity.User, error) {
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
@@ -62,20 +72,22 @@ func (s *BankService) Get(user *GetBalance) (*entity.User, error) {
 
 }
 
-func (s *BankService) Update(user *UpdateBalance) (*entity.User, error) {
+func (s *BankService) Update(user *entity.UpdateBalance) (*entity.User, error) {
 	if user.UserID < 0 {
 		return nil, WrongIdErr
 	}
-	_, err := s.Get(&GetBalance{UserID: user.UserID})
+	_, err := s.Get(&entity.GetBalance{UserID: user.UserID})
 	if err != nil {
 		return nil, ChosenAccountNotFoundErr
 	}
-	//updatedBalance, err := s.BankRep.UpdateBalance(user)
 
-	sendToPaymentService(user)
+	err = s.rabbit.SendToPaymentService(user)
+	if err != nil {
+		return nil, err
+	}
 
 	//Спросить!!!
-	updatedBalance, _ := s.Get(&GetBalance{UserID: user.UserID})
+	updatedBalance, _ := s.Get(&entity.GetBalance{UserID: user.UserID})
 	return updatedBalance, err
 
 }

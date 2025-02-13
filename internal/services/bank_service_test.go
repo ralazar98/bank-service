@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func CreateAccountUser(userId int, balance int) *services.CreateAccount {
-	return &services.CreateAccount{
+func CreateAccountUser(userId int, balance int) *entity.CreateAccount {
+	return &entity.CreateAccount{
 		UserID:  userId,
 		Balance: balance,
 	}
@@ -25,14 +25,14 @@ func CreateEntityUser(userId int, balance int) *entity.User {
 	}
 }
 
-func GetBalanceUser(userId int) *services.GetBalance {
-	return &services.GetBalance{
+func GetBalanceUser(userId int) *entity.GetBalance {
+	return &entity.GetBalance{
 		UserID: userId,
 	}
 }
 
-func UpdateBalanceUser(userId int, changingInBalance int) *services.UpdateBalance {
-	return &services.UpdateBalance{
+func UpdateBalanceUser(userId int, changingInBalance int) *entity.UpdateBalance {
+	return &entity.UpdateBalance{
 		UserID:            userId,
 		ChangingInBalance: changingInBalance,
 	}
@@ -40,7 +40,7 @@ func UpdateBalanceUser(userId int, changingInBalance int) *services.UpdateBalanc
 
 func TestBankService_Create(t *testing.T) {
 	type args struct {
-		user *services.CreateAccount
+		user *entity.CreateAccount
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

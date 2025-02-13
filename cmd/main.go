@@ -1,43 +1,42 @@
 package main
 
 import (
+	"bank-service/configs"
 	http2 "bank-service/internal/handlers"
 	"bank-service/internal/rabbit"
 	"bank-service/internal/repository/postgresql"
 	"bank-service/internal/services"
-	"github.com/go-chi/chi/v5"
-	"net/http"
+	"log"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
-	r := chi.NewRouter()
 
-	r.Use(http2.RequestLogger)
-
-	apiRouter := chi.NewRouter()
-	apiRouter.Use(http2.MetricsMiddleware)
-
-	store := postgresql.New()
-
-	service := services.NewBankService(store)
-	accountHandler := http2.NewAccountHandler(service)
-	techRouterHandler := http2.NewTechRouteHandler()
-
-	accountHandler.ApiRoute(apiRouter)
-	techRouterHandler.TechRoute(r)
-
-	r.Mount("/api", apiRouter)
-
-	newRabbit, err := rabbit.NewRabbit(store)
+	cfg, err := configs.LoadConfig()
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
-	go newRabbit.Updater()
-	defer newRabbit.Close()
 
-	address := ":" + os.Getenv("PORT")
-	http.ListenAndServe(address, r)
+	store := postgresql.New(cfg.Database)
+
+	newRabbit, err := rabbit.NewRabbit(cfg.RabbitMQ)
+	if err != nil {
+		log.Println("Can't connect to RabbitMQ:", err)
+	}
+
+	service := services.NewBankService(store, cfg, newRabbit)
+
+	serv := http2.NewServer(service, cfg.App)
+	go serv.Start()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	time.Sleep(1 * time.Second)
+	log.Println("Shutting down server...")
 
 }

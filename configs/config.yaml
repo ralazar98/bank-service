@@ -1,11 +1,16 @@
-env: "local"
-http_config:
-  address: "localhost:8080"
-storage_config:
-  host: "localhost"
-  port: 5438
-  database: "postgres"
-  username: "my_user"
+app:
+  port: 8080
+  appVersion: "1.0.0"
+database:
+  host: "postgres-container"
+  port: 5432
+  dbname: "postgres"
+  user: "my_user"
   password: 1234
+  maxconnections: 20
+rabbitmq:
+  nameOfQueue: "queueOfPayment"
+  rabbitUrl: "amqp://guest:guest@rabbitmq:5672/"
+
 
   

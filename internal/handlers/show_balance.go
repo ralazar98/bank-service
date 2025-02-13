@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"bank-service/internal/services"
+	"bank-service/internal/entity"
 	"github.com/go-chi/render"
 	"net/http"
 )
 
 func (a *AccountHandler) ShowBalance(w http.ResponseWriter, r *http.Request) {
-	var req *services.GetBalance
+	var req *entity.GetBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.JSON(w, r, err)
 	}

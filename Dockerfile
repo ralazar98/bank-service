@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 
+COPY configs/config.yaml /app/cmd/configs/
+
 RUN go mod download
 
 COPY .. .

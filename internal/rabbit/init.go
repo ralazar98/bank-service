@@ -1,93 +1,94 @@
 package rabbit
 
 import (
+	"bank-service/configs"
 	"bank-service/internal/entity"
-	"bank-service/internal/services"
 	"encoding/json"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 )
 
-func FailOnError(err error, msg string) {
+type Rabbit struct {
+	con     *amqp.Connection
+	channel *amqp.Channel
+	cfg     configs.RabbitMQConfig
+}
+
+func NewRabbit(cfg configs.RabbitMQConfig) (*Rabbit, error) {
+	newRabbit := &Rabbit{
+		cfg: cfg,
+	}
+
+	err := newRabbit.NewConnection()
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		return nil, err
 	}
+
+	return newRabbit, nil
 }
 
-type rabbit struct {
-	con         *amqp.Connection
-	channel     *amqp.Channel
-	nameOfQueue string
-	service     BankI
-}
+func (myRabbit *Rabbit) NewConnection() error {
+	conn, err := amqp.Dial(myRabbit.cfg.RabbitURL)
+	if err != nil {
+		return err
+	}
+	log.Println("Connected to RabbitMQ")
 
-type BankI interface {
-	UpdateBalance(user *services.UpdateBalance) (*entity.User, error)
-}
+	channel, err := conn.Channel()
+	if err != nil {
+		return err
+	}
+	log.Println("Created channel")
 
-func NewRabbit(bankRep BankI) (*rabbit, error) {
-	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
-	services.FailOnError(err, "Failed to connect to RabbitMQ in check")
-
-	log.Println("RabbitMQ connected")
-
-	ch, err := conn.Channel()
-	services.FailOnError(err, "Failed to open a channel in check")
-
-	queue, err := ch.QueueDeclare(
-		"queue_of_payment",
+	_, err = channel.QueueDeclare(
+		myRabbit.cfg.NameOfQueue,
 		false,
 		false,
 		false,
 		false,
 		nil,
 	)
-	services.FailOnError(err, "Failed to declare a queue")
-	return &rabbit{
-		con:         conn,
-		channel:     ch,
-		service:     bankRep,
-		nameOfQueue: queue.Name,
-	}, nil
+	if err != nil {
+		return err
+	}
+	log.Println("Queue declare")
+
+	myRabbit.con = conn
+	myRabbit.channel = channel
+	return nil
 }
 
-func (r *rabbit) Updater() {
-	msgs, err := r.channel.Consume(
-		r.nameOfQueue,
+func (myRabbit *Rabbit) SendToPaymentService(user *entity.UpdateBalance) error {
+
+	body, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal("marshal err: ", err)
+	}
+
+	err = myRabbit.channel.Publish(
 		"",
-		true,
+		myRabbit.cfg.NameOfQueue,
 		false,
 		false,
-		false,
-		nil,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		},
 	)
-	if r.channel.IsClosed() {
-		log.Println("Канал закрыт после consume")
-		return
+	if err != nil {
+		return err
 	}
-	FailOnError(err, "Не удалось зарегистрировать потребителя")
-	for message := range msgs {
-		var user *services.UpdateBalance
-		err := json.Unmarshal(message.Body, &user)
-		if err != nil {
-			FailOnError(err, "Ошибка в дешифровке")
-		}
-		updateBalance, err := r.service.UpdateBalance(user)
-		if err != nil {
-			FailOnError(err, "ошибка при изменении баланса")
-		}
-		log.Println(updateBalance)
-	}
+	return nil
 }
 
-func (r *rabbit) Close() {
-	connectError := r.con.Close()
-	channelError := r.channel.Close()
+func (myRabbit *Rabbit) Close() error {
+	connectError := myRabbit.con.Close()
 	if connectError != nil {
-		FailOnError(channelError, "connectError")
+		return connectError
 	}
+	channelError := myRabbit.channel.Close()
 	if channelError != nil {
-		FailOnError(channelError, "channelError")
+		return channelError
 	}
-
+	return nil
 }

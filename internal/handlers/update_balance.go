@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"bank-service/internal/entity"
 	"bank-service/internal/services"
 	"github.com/go-chi/render"
 	"net/http"
 )
 
 func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var req *services.UpdateBalance
+	var req *entity.UpdateBalance
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))

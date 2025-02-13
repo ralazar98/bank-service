@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bank-service/internal/entity"
-	"bank-service/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -17,9 +16,9 @@ const (
 )
 
 type BankServiceI interface {
-	Create(user *services.CreateAccount) (*entity.User, error)
-	Get(user *services.GetBalance) (*entity.User, error)
-	Update(user *services.UpdateBalance) (*entity.User, error)
+	Create(user *entity.CreateAccount) (*entity.User, error)
+	Get(user *entity.GetBalance) (*entity.User, error)
+	Update(user *entity.UpdateBalance) (*entity.User, error)
 }
 
 type AccountHandler struct {
