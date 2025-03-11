@@ -13,6 +13,12 @@ type BankServer struct {
 	bankService services.BankService
 }
 
+func NewBankServer(bankService services.BankService) *BankServer {
+	return &BankServer{
+		bankService: bankService,
+	}
+}
+
 func (bankServer *BankServer) CreateAccount(ctx context.Context, req *proto.CreateRequest) (*proto.CreateResponse, error) {
 	var user *entity.CreateAccount
 	user.UserID = int(req.UserID)
@@ -29,15 +35,18 @@ func (bankServer *BankServer) CreateAccount(ctx context.Context, req *proto.Crea
 }
 
 func (bankServer *BankServer) GetBalance(ctx context.Context, req *proto.GetBalanceRequest) (*proto.GetBalanceResponse, error) {
-	//TODO:Убрать лог
+	//TODO:Убрать логи
 	log.Println("GetBalance ")
 	log.Println(req.UserID)
 	var user *entity.GetBalance
 	user.UserID = int(req.UserID)
 	resp, err := bankServer.bankService.Get(user)
 	if err != nil {
+
+		log.Println("test")
 		return nil, err
 	}
+	log.Println(resp.Balance)
 	getBalanceResponse := &proto.GetBalanceResponse{UserID: int64(resp.ID), Balance: int64(resp.Balance.Sum)}
 	return getBalanceResponse, nil
 }

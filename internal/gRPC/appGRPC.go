@@ -1,10 +1,10 @@
 package servergrpc
 
 import (
-	"bank-service/internal/services"
 	"bank-service/proto"
 	"fmt"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 )
 
@@ -13,13 +13,13 @@ type App struct {
 	port       int
 }
 
-func RegisterBankServer(s *grpc.Server, bankService services.BankService) {
-	proto.RegisterBankServiceServer(s, &BankServer{bankService: bankService})
+func RegisterBankServer(s *grpc.Server, bankServer *BankServer) {
+	proto.RegisterBankServiceServer(s, bankServer)
 }
 
-func NewApp(bankService services.BankService, port int) *App {
+func NewApp(bankServer *BankServer, port int) *App {
 	server := grpc.NewServer()
-	RegisterBankServer(server, bankService)
+	RegisterBankServer(server, bankServer)
 	return &App{
 		gRPCServer: server,
 		port:       port,
@@ -31,6 +31,7 @@ func (app *App) Run() error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Server listening at %v", lis.Addr())
 	err = app.gRPCServer.Serve(lis)
 	if err != nil {
 		return err

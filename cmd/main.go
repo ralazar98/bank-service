@@ -34,8 +34,9 @@ func main() {
 	serv := http2.NewServer(service, cfg.App)
 	go serv.Start()
 
+	bankServer := servergrpc.NewBankServer(*service)
 	//TODO:Убрать порт в конфиг
-	app := servergrpc.NewApp(*service, 50051)
+	app := servergrpc.NewApp(bankServer, 50051)
 	//TODO:Обработать ошибку
 	go app.Run()
 

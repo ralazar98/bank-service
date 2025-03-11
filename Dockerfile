@@ -14,6 +14,8 @@ WORKDIR /app/cmd
 
 RUN go build -o bank-service .
 
+
 EXPOSE 8080
+EXPOSE 50051
 
 CMD ["./bank-service"]
