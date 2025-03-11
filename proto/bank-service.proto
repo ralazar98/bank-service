@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package bank;
+option go_package = "/proto";
+
+service BankService {
+  rpc CreateAccount(CreateRequest) returns(CreateResponse);
+  rpc GetBalance(GetBalanceRequest) returns(GetBalanceResponse);
+  rpc UpdateBalance(UpdateBalanceRequest) returns(UpdateBalanceResponse);
+}
+
+message CreateRequest{
+  int64 userID = 1;
+  int64 balance =2;
+}
+
+message CreateResponse{
+  int64 userID = 1;
+  int64 balance =2;
+}
+
+message GetBalanceRequest{
+  int64 userID = 1;
+}
+
+message GetBalanceResponse{
+  int64 userID = 1;
+  int64 balance = 2;
+}
+
+message UpdateBalanceRequest{
+  int64 userID=1;
+  int64 changingInBalance=2;
+  string operation=3;
+}
+
+message UpdateBalanceResponse{
+  int64 userID=1;
+  int64 balance=2;
+}

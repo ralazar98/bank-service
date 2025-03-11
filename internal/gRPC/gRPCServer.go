@@ -1,0 +1,56 @@
+package servergrpc
+
+import (
+	"bank-service/internal/entity"
+	"bank-service/internal/services"
+	"bank-service/proto"
+	"context"
+	"log"
+)
+
+type BankServer struct {
+	proto.UnimplementedBankServiceServer
+	bankService services.BankService
+}
+
+func (bankServer *BankServer) CreateAccount(ctx context.Context, req *proto.CreateRequest) (*proto.CreateResponse, error) {
+	var user *entity.CreateAccount
+	user.UserID = int(req.UserID)
+	user.Balance = int(req.Balance)
+	//TODO:Убрать лог
+	log.Println("CreateAccount ", user)
+
+	resp, err := bankServer.bankService.Create(user)
+	if err != nil {
+		return nil, err
+	}
+	createResponse := &proto.CreateResponse{UserID: int64(resp.ID), Balance: int64(resp.Balance.Sum)}
+	return createResponse, nil
+}
+
+func (bankServer *BankServer) GetBalance(ctx context.Context, req *proto.GetBalanceRequest) (*proto.GetBalanceResponse, error) {
+	//TODO:Убрать лог
+	log.Println("GetBalance ")
+	log.Println(req.UserID)
+	var user *entity.GetBalance
+	user.UserID = int(req.UserID)
+	resp, err := bankServer.bankService.Get(user)
+	if err != nil {
+		return nil, err
+	}
+	getBalanceResponse := &proto.GetBalanceResponse{UserID: int64(resp.ID), Balance: int64(resp.Balance.Sum)}
+	return getBalanceResponse, nil
+}
+
+func (bankServer *BankServer) UpdateBalance(ctx context.Context, req *proto.UpdateBalanceRequest) (*proto.UpdateBalanceResponse, error) {
+	var user *entity.UpdateBalance
+	user.UserID = int(req.UserID)
+	user.ChangingInBalance = int(req.ChangingInBalance)
+	user.Operation = req.Operation
+	resp, err := bankServer.bankService.Update(user)
+	if err != nil {
+		return nil, err
+	}
+	updateBalanceResponse := &proto.UpdateBalanceResponse{UserID: int64(resp.ID), Balance: int64(resp.Balance.Sum)}
+	return updateBalanceResponse, nil
+}

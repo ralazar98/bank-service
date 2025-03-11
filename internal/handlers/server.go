@@ -46,7 +46,7 @@ func NewServer(bankService BankServiceI, cfg configs.AppConfig) *Server {
 func (server *Server) Start() {
 	err := server.httpServer.ListenAndServe()
 	if err != nil {
-		log.Printf("Error starting server: %v", err)
+		log.Printf("Error starting gRPC: %v", err)
 	}
 }
 
