@@ -3,7 +3,6 @@ package handlers
 import (
 	"bank-service/configs"
 	"github.com/go-chi/chi/v5"
-	"log"
 	"net/http"
 )
 
@@ -43,11 +42,12 @@ func NewServer(bankService BankServiceI, cfg configs.AppConfig) *Server {
 	return server
 }
 
-func (server *Server) Start() {
+func (server *Server) Start() error {
 	err := server.httpServer.ListenAndServe()
 	if err != nil {
-		log.Printf("Error starting gRPC: %v", err)
+		return err
 	}
+	return nil
 }
 
 func (server *Server) Restart() {

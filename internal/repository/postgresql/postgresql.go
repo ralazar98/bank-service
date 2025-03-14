@@ -4,7 +4,6 @@ import (
 	"bank-service/configs"
 	"bank-service/internal/entity"
 	"github.com/jackc/pgx"
-	"log"
 	"time"
 )
 
@@ -12,7 +11,7 @@ type BankStorage struct {
 	conn *pgx.ConnPool
 }
 
-func New(cfg configs.DataBaseConfig) *BankStorage {
+func New(cfg configs.DataBaseConfig) (*BankStorage, error) {
 
 	connConf := pgx.ConnConfig{
 		Host:     cfg.Host,
@@ -26,15 +25,12 @@ func New(cfg configs.DataBaseConfig) *BankStorage {
 		MaxConnections: cfg.MaxConnections,
 	})
 	if err != nil {
-		log.Println("Ошибка подключения")
-		log.Println(err)
-	} else {
-		log.Print("Подключено к БД")
-		return &BankStorage{
-			conn: pool,
-		}
+
+		return nil, err
 	}
-	return &BankStorage{}
+	return &BankStorage{
+		conn: pool,
+	}, nil
 }
 
 func (s *BankStorage) CreateAccount(user *entity.CreateAccount) (*entity.User, error) {

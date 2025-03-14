@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-type App struct {
+type AppGRPC struct {
 	gRPCServer *grpc.Server
 	port       int
 }
@@ -17,16 +17,16 @@ func RegisterBankServer(s *grpc.Server, bankServer *BankServer) {
 	proto.RegisterBankServiceServer(s, bankServer)
 }
 
-func NewApp(bankServer *BankServer, port int) *App {
+func NewAppGRPC(bankServer *BankServer, port int) *AppGRPC {
 	server := grpc.NewServer()
 	RegisterBankServer(server, bankServer)
-	return &App{
+	return &AppGRPC{
 		gRPCServer: server,
 		port:       port,
 	}
 }
 
-func (app *App) Run() error {
+func (app *AppGRPC) Run() error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.port))
 	if err != nil {
 		return err
@@ -39,6 +39,6 @@ func (app *App) Run() error {
 	return nil
 }
 
-func (app *App) Stop() {
+func (app *AppGRPC) Stop() {
 	app.gRPCServer.GracefulStop()
 }

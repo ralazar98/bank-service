@@ -2,11 +2,7 @@ package main
 
 import (
 	"bank-service/configs"
-	servergrpc "bank-service/internal/gRPC"
-	http2 "bank-service/internal/handlers"
-	"bank-service/internal/rabbit"
-	"bank-service/internal/repository/postgresql"
-	"bank-service/internal/services"
+	"bank-service/internal/app"
 	"log"
 	_ "net/http/pprof"
 	"os"
@@ -20,31 +16,25 @@ func main() {
 	cfg, err := configs.LoadConfig()
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
-	store := postgresql.New(cfg.Database)
-
-	newRabbit, err := rabbit.NewRabbit(cfg.RabbitMQ)
+	myApp, err := app.New(cfg)
 	if err != nil {
-		log.Println("Can't connect to RabbitMQ:", err)
+		log.Println(err)
+		return
 	}
 
-	service := services.NewBankService(store, cfg, newRabbit)
-
-	serv := http2.NewServer(service, cfg.App)
-	go serv.Start()
-
-	bankServer := servergrpc.NewBankServer(*service)
-	//TODO:Убрать порт в конфиг
-	app := servergrpc.NewApp(bankServer, 50051)
-	//TODO:Обработать ошибку
-	go app.Run()
+	err = myApp.MustRun()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	time.Sleep(1 * time.Second)
 
-	log.Println("Shutting down gRPC...")
-	app.Stop()
+	myApp.MustStop()
 }

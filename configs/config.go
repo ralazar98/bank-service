@@ -9,6 +9,7 @@ type Config struct {
 	App      AppConfig
 	Database DataBaseConfig
 	RabbitMQ RabbitMQConfig
+	GRPC     GRPCConfig
 }
 
 type AppConfig struct {
@@ -28,6 +29,10 @@ type DataBaseConfig struct {
 type RabbitMQConfig struct {
 	RabbitURL   string `mapstructure:"rabbitURL"`
 	NameOfQueue string `mapstructure:"nameOfQueue"`
+}
+
+type GRPCConfig struct {
+	GRPCPort int `mapstructure:"gRPCPort"`
 }
 
 func LoadConfig() (*Config, error) {

@@ -20,13 +20,11 @@ func NewBankServer(bankService services.BankService) *BankServer {
 }
 
 func (bankServer *BankServer) CreateAccount(ctx context.Context, req *proto.CreateRequest) (*proto.CreateResponse, error) {
-	var user *entity.CreateAccount
+	var user entity.CreateAccount
 	user.UserID = int(req.UserID)
 	user.Balance = int(req.Balance)
-	//TODO:Убрать лог
-	log.Println("CreateAccount ", user)
 
-	resp, err := bankServer.bankService.Create(user)
+	resp, err := bankServer.bankService.Create(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -35,12 +33,9 @@ func (bankServer *BankServer) CreateAccount(ctx context.Context, req *proto.Crea
 }
 
 func (bankServer *BankServer) GetBalance(ctx context.Context, req *proto.GetBalanceRequest) (*proto.GetBalanceResponse, error) {
-	//TODO:Убрать логи
-	log.Println("GetBalance ")
-	log.Println(req.UserID)
-	var user *entity.GetBalance
+	var user entity.GetBalance
 	user.UserID = int(req.UserID)
-	resp, err := bankServer.bankService.Get(user)
+	resp, err := bankServer.bankService.Get(&user)
 	if err != nil {
 
 		log.Println("test")
@@ -52,11 +47,11 @@ func (bankServer *BankServer) GetBalance(ctx context.Context, req *proto.GetBala
 }
 
 func (bankServer *BankServer) UpdateBalance(ctx context.Context, req *proto.UpdateBalanceRequest) (*proto.UpdateBalanceResponse, error) {
-	var user *entity.UpdateBalance
+	var user entity.UpdateBalance
 	user.UserID = int(req.UserID)
 	user.ChangingInBalance = int(req.ChangingInBalance)
 	user.Operation = req.Operation
-	resp, err := bankServer.bankService.Update(user)
+	resp, err := bankServer.bankService.Update(&user)
 	if err != nil {
 		return nil, err
 	}

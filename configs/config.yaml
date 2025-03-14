@@ -11,6 +11,8 @@ database:
 rabbitmq:
   nameOfQueue: "queueOfPayment"
   rabbitUrl: "amqp://guest:guest@rabbitmq:5672/"
+gRPC:
+  gRPCPort: 50051
 
 
   
