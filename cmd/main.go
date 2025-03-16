@@ -24,7 +24,10 @@ func main() {
 		log.Println(err)
 		return
 	}
-
+	//TODO: я думаю что имеет смысл исполизовать в структуре app именно поля реализации, будто лучше сделать интерфейс с методом Run и кидать туда все слои для старта
+	//struct {
+	//	Run []func() error
+	//}
 	err = myApp.MustRun()
 	if err != nil {
 		log.Println(err)

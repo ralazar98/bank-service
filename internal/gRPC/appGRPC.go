@@ -13,6 +13,7 @@ type AppGRPC struct {
 	port       int
 }
 
+// TODO: подумай нужна ли функция которая использует только один метод, если думаешь что нужна, то она точно используется только в пакете и имеет смысл оставить с мелкой буквы
 func RegisterBankServer(s *grpc.Server, bankServer *BankServer) {
 	proto.RegisterBankServiceServer(s, bankServer)
 }
