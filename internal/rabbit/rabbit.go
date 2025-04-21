@@ -8,6 +8,12 @@ import (
 	"log"
 )
 
+type RabbitI interface {
+	NewConnection() error
+	SendToPaymentService(user *entity.UpdateBalance) error
+	Close() error
+}
+
 type Rabbit struct {
 	con     *amqp.Connection
 	channel *amqp.Channel

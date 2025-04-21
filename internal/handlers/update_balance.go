@@ -13,27 +13,26 @@ func (a *AccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 	}
-
+	//TODO:Переписать в кейсы
 	if operation(req.Operation) == TakeOperation {
 		req.ChangingInBalance *= -1
 
-		res, err := a.bankService.Update(req)
+		err := a.bankService.Update(req)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 		} else {
-			render.JSON(w, r, res)
+			w.Write([]byte("Successfully updated"))
 		}
 
 	} else if operation(req.Operation) == AddOperation {
 
-		res, err := a.bankService.Update(req)
+		err := a.bankService.Update(req)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 		} else {
-			render.JSON(w, r, res)
-
+			w.Write([]byte("Successfully updated"))
 		}
 
 	} else {

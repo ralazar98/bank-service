@@ -19,7 +19,7 @@ var (
 type ReposI interface {
 	CreateAccount(user *entity.CreateAccount) (*entity.User, error)
 	GetBalance(user *entity.GetBalance) (*entity.User, error)
-	Update(user *entity.UpdateBalance) (*entity.User, error)
+	Update(user *entity.UpdateBalance) error
 }
 
 type BankService struct {
@@ -72,22 +72,19 @@ func (s *BankService) Get(user *entity.GetBalance) (*entity.User, error) {
 
 }
 
-func (s *BankService) Update(user *entity.UpdateBalance) (*entity.User, error) {
+func (s *BankService) Update(user *entity.UpdateBalance) error {
 	if user.UserID < 0 {
-		return nil, WrongIdErr
+		return WrongIdErr
 	}
 	_, err := s.Get(&entity.GetBalance{UserID: user.UserID})
 	if err != nil {
-		return nil, ChosenAccountNotFoundErr
+		return ChosenAccountNotFoundErr
 	}
 
 	err = s.rabbit.SendToPaymentService(user)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	//Спросить!!!
-	updatedBalance, _ := s.Get(&entity.GetBalance{UserID: user.UserID})
-	return updatedBalance, err
-
+	return nil
 }

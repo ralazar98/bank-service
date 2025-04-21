@@ -60,6 +60,6 @@ func (s *BankStorage) GetBalance(user *entity.GetBalance) (*entity.User, error) 
 	return &entityUser, err
 }
 
-func (s *BankStorage) Update(user *entity.UpdateBalance) (*entity.User, error) {
-	return nil, nil
+func (s *BankStorage) Update(user *entity.UpdateBalance) error {
+	return nil
 }

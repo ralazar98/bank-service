@@ -1,28 +1,23 @@
-package main
+package server
 
 import (
 	"bank-service/configs"
-	"bank-service/graph"
 	"bank-service/internal/app"
 	servergrpc "bank-service/internal/gRPC"
-	"bank-service/internal/gql"
 	"bank-service/internal/handlers"
 	"bank-service/internal/rabbit"
 	"bank-service/internal/repository/postgresql"
 	"bank-service/internal/services"
-	"log"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
-func main() {
+func Run() error {
 	cfg, err := configs.LoadConfig()
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	store, err := postgresql.New(cfg.Database)
@@ -38,23 +33,13 @@ func main() {
 
 	apiServer := handlers.NewServer(service, cfg.App)
 
-	gRPCServer := servergrpc.NewBankServer(service)
+	gRPCServer := servergrpc.NewBankServer(*service)
 
 	appGRPC := servergrpc.NewAppGRPC(gRPCServer, cfg.GRPC.GRPCPort)
 
 	myApp, err := app.New(apiServer, appGRPC)
 	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	resolver := &graph.Resolver{DB: store}
-
-	http.Handle("/", gql.PlaygroundHandler())
-	http.Handle("/query", gql.NewServer(resolver))
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	myApp.Runner()
@@ -65,4 +50,6 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	myApp.MustStop()
+
+	return nil
 }

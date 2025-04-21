@@ -1,0 +1,17 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type User {
+    id: Int!
+    balance: Int!
+}
+
+type Query{
+    getBalance(id:Int!):User
+}
+
+type Mutation{
+ createUser(id:Int!,balance:Int!): User
+}
+

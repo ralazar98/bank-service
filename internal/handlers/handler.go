@@ -18,7 +18,7 @@ const (
 type BankServiceI interface {
 	Create(user *entity.CreateAccount) (*entity.User, error)
 	Get(user *entity.GetBalance) (*entity.User, error)
-	Update(user *entity.UpdateBalance) (*entity.User, error)
+	Update(user *entity.UpdateBalance) error
 }
 
 type AccountHandler struct {

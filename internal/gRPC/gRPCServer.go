@@ -2,18 +2,24 @@ package servergrpc
 
 import (
 	"bank-service/internal/entity"
-	"bank-service/internal/services"
 	"bank-service/proto"
 	"context"
 	"log"
+	"time"
 )
 
 type BankServer struct {
 	proto.UnimplementedBankServiceServer
-	bankService services.BankService
+	bankService BankServiceI
 }
 
-func NewBankServer(bankService services.BankService) *BankServer {
+type BankServiceI interface {
+	Create(user *entity.CreateAccount) (*entity.User, error)
+	Get(user *entity.GetBalance) (*entity.User, error)
+	Update(user *entity.UpdateBalance) error
+}
+
+func NewBankServer(bankService BankServiceI) *BankServer {
 	return &BankServer{
 		bankService: bankService,
 	}
@@ -51,10 +57,12 @@ func (bankServer *BankServer) UpdateBalance(ctx context.Context, req *proto.Upda
 	user.UserID = int(req.UserID)
 	user.ChangingInBalance = int(req.ChangingInBalance)
 	user.Operation = req.Operation
-	resp, err := bankServer.bankService.Update(&user)
+	err := bankServer.bankService.Update(&user)
 	if err != nil {
 		return nil, err
 	}
+	time.Sleep(1 * time.Second)
+	resp, err := bankServer.bankService.Get(&entity.GetBalance{UserID: user.UserID})
 	updateBalanceResponse := &proto.UpdateBalanceResponse{UserID: int64(resp.ID), Balance: int64(resp.Balance.Sum)}
 	return updateBalanceResponse, nil
 }

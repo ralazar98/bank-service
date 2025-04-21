@@ -9,31 +9,27 @@ import (
 )
 
 type AppGRPC struct {
-	gRPCServer *grpc.Server
+	GRPCServer *grpc.Server
 	port       int
-}
-
-// TODO: подумай нужна ли функция которая использует только один метод, если думаешь что нужна, то она точно используется только в пакете и имеет смысл оставить с мелкой буквы
-func RegisterBankServer(s *grpc.Server, bankServer *BankServer) {
-	proto.RegisterBankServiceServer(s, bankServer)
 }
 
 func NewAppGRPC(bankServer *BankServer, port int) *AppGRPC {
 	server := grpc.NewServer()
-	RegisterBankServer(server, bankServer)
+	proto.RegisterBankServiceServer(server, bankServer)
 	return &AppGRPC{
-		gRPCServer: server,
+		GRPCServer: server,
 		port:       port,
 	}
 }
 
 func (app *AppGRPC) Run() error {
+	log.Println("Starting server...")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.port))
 	if err != nil {
 		return err
 	}
 	log.Printf("Server listening at %v", lis.Addr())
-	err = app.gRPCServer.Serve(lis)
+	err = app.GRPCServer.Serve(lis)
 	if err != nil {
 		return err
 	}
@@ -41,5 +37,5 @@ func (app *AppGRPC) Run() error {
 }
 
 func (app *AppGRPC) Stop() {
-	app.gRPCServer.GracefulStop()
+	app.GRPCServer.GracefulStop()
 }

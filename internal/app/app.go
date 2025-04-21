@@ -1,13 +1,17 @@
 package app
 
 import (
-	"bank-service/configs"
 	servergrpc "bank-service/internal/gRPC"
 	"bank-service/internal/handlers"
 	"bank-service/internal/rabbit"
 	"bank-service/internal/repository/postgresql"
 	"bank-service/internal/services"
+	"log"
 )
+
+type AppRunner interface {
+	Run() error
+}
 
 type App struct {
 	storage    *postgresql.BankStorage
@@ -16,43 +20,35 @@ type App struct {
 	apiServer  *handlers.Server
 	gRPCServer *servergrpc.BankServer
 	appGRPC    *servergrpc.AppGRPC
+	options    []AppRunner
 }
 
-func New(cfg *configs.Config) (*App, error) {
-
-	store, err := postgresql.New(cfg.Database)
-	if err != nil {
-		return nil, err
-	}
-	myRabbit, err := rabbit.NewRabbit(cfg.RabbitMQ)
-	if err != nil {
-		return nil, err
-	}
-
-	service := services.NewBankService(store, cfg, myRabbit)
-
-	apiServer := handlers.NewServer(service, cfg.App)
-
-	gRPCServer := servergrpc.NewBankServer(*service)
-
-	appGRPC := servergrpc.NewAppGRPC(gRPCServer, cfg.GRPC.GRPCPort)
+func New(options ...AppRunner) (*App, error) {
 
 	return &App{
-		storage:    store,
-		rabbit:     myRabbit,
-		service:    service,
-		apiServer:  apiServer,
-		gRPCServer: gRPCServer,
-		appGRPC:    appGRPC,
+		options: options,
 	}, nil
+}
+
+func (app *App) Runner() {
+	for _, option := range app.options {
+		go func() {
+			err := option.Run()
+			if err != nil {
+				log.Println("Runner Error:", err)
+			}
+		}()
+	}
+
 }
 
 func (app *App) MustRun() error {
 
-	err := app.apiServer.Start()
+	err := app.apiServer.Run()
 	if err != nil {
 		return err
 	}
+	log.Println(app.appGRPC)
 	err = app.appGRPC.Run()
 	if err != nil {
 		return err

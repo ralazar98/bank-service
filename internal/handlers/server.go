@@ -42,7 +42,7 @@ func NewServer(bankService BankServiceI, cfg configs.AppConfig) *Server {
 	return server
 }
 
-func (server *Server) Start() error {
+func (server *Server) Run() error {
 	err := server.httpServer.ListenAndServe()
 	if err != nil {
 		return err
